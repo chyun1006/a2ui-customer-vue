@@ -81,7 +81,7 @@ export async function getUserInfo(workNo) {
     }
 
     const data = await response.json();
-    return data;
+    return data.data;
   } catch (error) {
     return { success: false, data: null };
   }

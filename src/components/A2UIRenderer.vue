@@ -15,8 +15,6 @@
     <div v-if="data.analysis" class="p-4 pt-2.5 text-slate-500 text-[12px]">
       {{ data.analysis }}
     </div>
-
-    <!-- Content -->
   </div>
   <div class="w-full bg-white rounded-2xl">
     <RenderNode

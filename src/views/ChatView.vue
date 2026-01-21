@@ -194,7 +194,6 @@ const genUserMessage = (message) => {
 };
 
 const sendMessage = async (payload, loadingId) => {
-  fetchApprovalCount();
   try {
     isLoading.value = true;
     // 调用 API
@@ -207,6 +206,9 @@ const sendMessage = async (payload, loadingId) => {
     messages.value = messages.value.filter((m) => m.id !== loadingId);
 
     if (success) {
+      // 更新待办数量
+      fetchApprovalCount();
+
       const a2ui = a2uiText ? JSON.parse(a2uiText) : null;
       // 添加 A2UI 消息
       messages.value.push({

@@ -5,7 +5,7 @@
       :icon-name="iconName"
       class-name="w-3.5 h-3.5"
     />
-    <span v-if="text">{{ text }}</span>
+    <span v-if="text">{{ text || label }}</span>
   </button>
 </template>
 
@@ -15,6 +15,10 @@ import DynamicIcon from "./DynamicIcon.vue";
 
 const props = defineProps({
   text: {
+    type: String,
+    default: "",
+  },
+  label: {
     type: String,
     default: "",
   },

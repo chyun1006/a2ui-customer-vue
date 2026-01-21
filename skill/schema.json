@@ -1,6 +1,6 @@
 {
   "name": "render_a2ui_interface",
-  "description": "当用户需要特定的交互界面（如登录、表单、报表、甘特图等）时，调用此工具生成符合 A2UI 协议的 JSON 声明。该 UI 将由前端渲染器直接解析为原生组件。",
+  "description": "当用户需要特定的交互界面（如登录、表单、报表、图表等）时，调用此工具生成符合 A2UI 协议的 JSON 声明。该 UI 将由前端渲染器直接解析为原生组件。",
   "parameters": {
     "type": "OBJECT",
     "properties": {
@@ -18,10 +18,11 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "唯一标识符，用于局部更新。"
+            "description": "唯一标识符，用于局部更新。必填。"
           },
           "type": {
             "type": "string",
+            "description": "组件类型。必填。",
             "enum": [
               "container",
               "text",
@@ -33,55 +34,146 @@
               "chart",
               "icon",
               "divider",
-              "badge",
-              "alert"
+              "badge"
             ]
           },
           "props": {
             "type": "OBJECT",
-            "description": "组件属性",
+            "description": "组件属性，根据不同的 type 有不同的可用属性",
             "properties": {
-              "label": { "type": "string" },
-              "name": { "type": "string", "description": "表单提交时的 key。" },
-              "placeholder": { "type": "string" },
-              "text": { "type": "string" },
-              "variant": {
+              "text": {
                 "type": "string",
-                "description": "风格：primary, secondary, danger, ghost"
+                "description": "文本内容。适用于: text, button, badge"
+              },
+              "usageHint": {
+                "type": "string",
+                "description": "文本用途提示，如 'h1', 'h2', 'caption' 等。适用于: text"
+              },
+              "label": {
+                "type": "string",
+                "description": "表单字段标签。适用于: input, select, textarea, datepicker"
+              },
+              "name": {
+                "type": "string",
+                "description": "表单字段名，用于表单提交时的 key。适用于: input, select, textarea, datepicker"
+              },
+              "placeholder": {
+                "type": "string",
+                "description": "占位提示文本。适用于: input, select, textarea, datepicker"
               },
               "iconName": {
                 "type": "string",
-                "description": "Lucide 图标名，如 'User', 'Send', 'Lock'。"
+                "description": "Lucide 图标名称，如 'User', 'Send', 'Lock', 'Calendar' 等。适用于: button, input, datepicker, icon"
               },
               "actionName": {
                 "type": "string",
-                "description": "按钮点击触发的动作 ID，需大写下划线格式。"
+                "description": "按钮点击触发的动作 ID，建议使用大写下划线格式，如 'SUBMIT_FORM'。必填用于 button 类型。"
+              },
+              "variant": {
+                "type": "string",
+                "description": "组件风格变体。button: 'primary', 'secondary', 'danger', 'ghost'; badge: 'warning', 'success', 'error' 等",
+                "enum": [
+                  "primary",
+                  "secondary",
+                  "danger",
+                  "ghost",
+                  "warning",
+                  "success",
+                  "error",
+                  "info"
+                ]
               },
               "options": {
                 "type": "ARRAY",
+                "description": "下拉选择项列表。必填用于 select 类型。",
                 "items": {
                   "type": "OBJECT",
                   "properties": {
-                    "label": { "type": "string" },
-                    "value": { "type": "string" }
+                    "label": {
+                      "type": "string",
+                      "description": "选项显示文本"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "选项值"
+                    }
+                  },
+                  "required": ["label", "value"]
+                }
+              },
+              "rows": {
+                "type": "number",
+                "description": "文本域行数，默认 3。适用于: textarea"
+              },
+              "chartType": {
+                "type": "string",
+                "description": "图表类型。必填用于 chart 类型。",
+                "enum": ["pie", "line", "bar"]
+              },
+              "chartData": {
+                "type": "OBJECT",
+                "description": "图表数据。必填用于 chart 类型。",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "图表标题"
+                  },
+                  "data": {
+                    "type": "ARRAY",
+                    "description": "饼图数据，格式: [{ name: '类别', value: 数值 }]。用于 pie 类型。",
+                    "items": {
+                      "type": "OBJECT",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "number" }
+                      }
+                    }
+                  },
+                  "xAxis": {
+                    "type": "ARRAY",
+                    "description": "X轴数据，字符串数组。用于 line 和 bar 类型。",
+                    "items": { "type": "string" }
+                  },
+                  "series": {
+                    "type": "ARRAY",
+                    "description": "系列数据。用于 line 和 bar 类型。",
+                    "items": {
+                      "type": "OBJECT",
+                      "properties": {
+                        "name": { "type": "string", "description": "系列名称" },
+                        "data": {
+                          "type": "ARRAY",
+                          "description": "数据数组",
+                          "items": { "type": "number" }
+                        }
+                      }
+                    }
                   }
                 }
+              },
+              "height": {
+                "type": "string",
+                "description": "图表高度，如 '300px', '400px'。适用于: chart"
               }
             }
           },
           "style": {
             "type": "OBJECT",
+            "description": "样式配置",
             "properties": {
               "className": {
                 "type": "string",
-                "description": "Tailwind CSS 类名，用于精细布局控制。"
+                "description": "Tailwind CSS 类名，用于精细布局控制。如 'flex gap-4', 'bg-blue-600 text-white' 等"
               }
             }
           },
           "children": {
             "type": "ARRAY",
-            "description": "嵌套子组件列表。",
-            "items": { "type": "OBJECT" } // 这里可以做递归引用，但在声明中通常保持 Object 即可
+            "description": "嵌套子组件列表。仅 container 类型可包含 children。",
+            "items": {
+              "type": "OBJECT",
+              "description": "子节点，结构与 uiNode 相同"
+            }
           }
         },
         "required": ["type", "id"]

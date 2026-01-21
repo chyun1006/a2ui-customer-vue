@@ -60,10 +60,7 @@
       </div>
 
       <!-- A2UI 消息 -->
-      <div
-        v-else-if="message.type === 'a2ui'"
-        class="w-full flex flex-col gap-2"
-      >
+      <div v-else-if="message.type === 'a2ui'" class="flex flex-col gap-2">
         <!-- Markdown 内容气泡 -->
         <div
           v-if="message.content"

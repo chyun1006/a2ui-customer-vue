@@ -54,6 +54,17 @@
       >
         图表示例
       </button>
+      <button
+        @click="currentData = schemaTestData"
+        :class="[
+          'flex-1 py-2 px-4 rounded-lg font-medium transition-colors',
+          currentData === schemaTestData
+            ? 'bg-blue-600 text-white'
+            : 'bg-white text-slate-700 border border-slate-200',
+        ]"
+      >
+        完整测试
+      </button>
     </div>
 
     <router-link
@@ -533,5 +544,218 @@ const chartData = {
   },
 };
 
-const currentData = ref(chartData);
+const schemaTestData = {
+  version: "0.8",
+  title: "A2UI 组件完整测试",
+  analysis:
+    "本示例展示所有 A2UI 组件类型的完整用法,用于验证 schema 定义的完整性。",
+  uiNode: {
+    id: "root",
+    type: "container",
+    style: {
+      className: "flex flex-col gap-6 p-6 max-w-4xl mx-auto",
+    },
+    children: [
+      {
+        id: "header",
+        type: "container",
+        style: { className: "flex items-center gap-3 mb-4" },
+        children: [
+          {
+            id: "icon_header",
+            type: "icon",
+            props: { iconName: "Sparkles" },
+            style: { className: "w-8 h-8 text-blue-600" },
+          },
+          {
+            id: "title_text",
+            type: "text",
+            props: { text: "组件完整性测试", usageHint: "h1" },
+            style: { className: "text-2xl font-bold text-slate-900" },
+          },
+          {
+            id: "badge_status",
+            type: "badge",
+            props: { text: "测试中", variant: "warning" },
+            style: {
+              className:
+                "bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-xs font-bold",
+            },
+          },
+        ],
+      },
+      {
+        id: "divider_1",
+        type: "divider",
+        style: { className: "my-2" },
+      },
+      {
+        id: "section_form",
+        type: "container",
+        style: {
+          className:
+            "bg-white p-6 rounded-2xl border border-slate-100 shadow-sm",
+        },
+        children: [
+          {
+            id: "form_title",
+            type: "text",
+            props: { text: "表单组件测试", usageHint: "h2" },
+            style: { className: "text-lg font-bold text-slate-800 mb-4" },
+          },
+          {
+            id: "input_username",
+            type: "input",
+            props: {
+              label: "用户名",
+              name: "username",
+              placeholder: "请输入用户名",
+              iconName: "User",
+            },
+          },
+          {
+            id: "select_role",
+            type: "select",
+            props: {
+              label: "角色",
+              name: "role",
+              placeholder: "请选择角色",
+              options: [
+                { label: "管理员", value: "admin" },
+                { label: "普通用户", value: "user" },
+                { label: "访客", value: "guest" },
+              ],
+            },
+            style: { className: "mt-3" },
+          },
+          {
+            id: "datepicker_birthday",
+            type: "datepicker",
+            props: {
+              label: "生日",
+              name: "birthday",
+              placeholder: "请选择日期",
+              iconName: "Calendar",
+            },
+            style: { className: "mt-3" },
+          },
+          {
+            id: "textarea_bio",
+            type: "textarea",
+            props: {
+              label: "个人简介",
+              name: "bio",
+              placeholder: "请输入个人简介...",
+              rows: 4,
+            },
+            style: { className: "mt-3" },
+          },
+          {
+            id: "button_group",
+            type: "container",
+            style: { className: "flex gap-3 mt-4" },
+            children: [
+              {
+                id: "btn_submit",
+                type: "button",
+                props: {
+                  text: "提交",
+                  actionName: "SUBMIT_FORM",
+                  variant: "primary",
+                  iconName: "Check",
+                },
+                style: { className: "flex-1 bg-blue-600 text-white" },
+              },
+              {
+                id: "btn_cancel",
+                type: "button",
+                props: {
+                  text: "取消",
+                  actionName: "CANCEL",
+                  variant: "secondary",
+                  iconName: "X",
+                },
+                style: { className: "flex-1" },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "section_charts",
+        type: "container",
+        style: { className: "mt-6" },
+        children: [
+          {
+            id: "charts_title",
+            type: "text",
+            props: { text: "图表组件测试", usageHint: "h2" },
+            style: { className: "text-lg font-bold text-slate-800 mb-4" },
+          },
+          {
+            id: "chart_pie",
+            type: "chart",
+            props: {
+              chartType: "pie",
+              chartData: {
+                title: "数据分布",
+                data: [
+                  { name: "类别A", value: 30 },
+                  { name: "类别B", value: 25 },
+                  { name: "类别C", value: 20 },
+                  { name: "类别D", value: 25 },
+                ],
+              },
+              height: "300px",
+            },
+          },
+          {
+            id: "chart_line",
+            type: "chart",
+            props: {
+              chartType: "line",
+              chartData: {
+                title: "趋势分析",
+                xAxis: ["1月", "2月", "3月", "4月", "5月"],
+                series: [
+                  {
+                    name: "指标A",
+                    data: [120, 132, 101, 134, 90],
+                  },
+                  {
+                    name: "指标B",
+                    data: [220, 182, 191, 234, 290],
+                  },
+                ],
+              },
+              height: "300px",
+            },
+            style: { className: "mt-6" },
+          },
+          {
+            id: "chart_bar",
+            type: "chart",
+            props: {
+              chartType: "bar",
+              chartData: {
+                title: "对比分析",
+                xAxis: ["产品A", "产品B", "产品C", "产品D"],
+                series: [
+                  {
+                    name: "销量",
+                    data: [50, 80, 60, 90],
+                  },
+                ],
+              },
+              height: "300px",
+            },
+            style: { className: "mt-6" },
+          },
+        ],
+      },
+    ],
+  },
+};
+
+const currentData = ref(schemaTestData);
 </script>

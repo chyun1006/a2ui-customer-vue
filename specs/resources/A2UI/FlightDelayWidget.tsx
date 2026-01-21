@@ -1,0 +1,1 @@
+// This file has been deprecated and its functionality is now handled dynamically by DynamicWidget.tsx

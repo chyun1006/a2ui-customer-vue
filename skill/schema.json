@@ -1,0 +1,91 @@
+{
+  "name": "render_a2ui_interface",
+  "description": "当用户需要特定的交互界面（如登录、表单、报表、甘特图等）时，调用此工具生成符合 A2UI 协议的 JSON 声明。该 UI 将由前端渲染器直接解析为原生组件。",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "界面的主标题，显示在容器顶部。"
+      },
+      "analysis": {
+        "type": "string",
+        "description": "针对当前场景的 AI 智能分析或操作建议。"
+      },
+      "uiNode": {
+        "type": "OBJECT",
+        "description": "根节点容器，必须包含 type: 'container'。",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "唯一标识符，用于局部更新。"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "container",
+              "text",
+              "button",
+              "input",
+              "select",
+              "textarea",
+              "icon",
+              "divider",
+              "badge",
+              "chart",
+              "alert"
+            ]
+          },
+          "props": {
+            "type": "OBJECT",
+            "description": "组件属性",
+            "properties": {
+              "label": { "type": "string" },
+              "name": { "type": "string", "description": "表单提交时的 key。" },
+              "placeholder": { "type": "string" },
+              "text": { "type": "string" },
+              "variant": {
+                "type": "string",
+                "description": "风格：primary, secondary, danger, ghost"
+              },
+              "iconName": {
+                "type": "string",
+                "description": "Lucide 图标名，如 'User', 'Send', 'Lock'。"
+              },
+              "actionName": {
+                "type": "string",
+                "description": "按钮点击触发的动作 ID，需大写下划线格式。"
+              },
+              "options": {
+                "type": "ARRAY",
+                "items": {
+                  "type": "OBJECT",
+                  "properties": {
+                    "label": { "type": "string" },
+                    "value": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "style": {
+            "type": "OBJECT",
+            "properties": {
+              "className": {
+                "type": "string",
+                "description": "Tailwind CSS 类名，用于精细布局控制。"
+              }
+            }
+          },
+          "children": {
+            "type": "ARRAY",
+            "description": "嵌套子组件列表。",
+            "items": { "type": "OBJECT" } // 这里可以做递归引用，但在声明中通常保持 Object 即可
+          }
+        },
+        "required": ["type", "id"]
+      }
+    },
+    "required": ["title", "uiNode"]
+  }
+}

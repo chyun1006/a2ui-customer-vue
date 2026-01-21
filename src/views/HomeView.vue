@@ -43,6 +43,17 @@
       >
         日期选择
       </button>
+      <button
+        @click="currentData = chartData"
+        :class="[
+          'flex-1 py-2 px-4 rounded-lg font-medium transition-colors',
+          currentData === chartData
+            ? 'bg-blue-600 text-white'
+            : 'bg-white text-slate-700 border border-slate-200',
+        ]"
+      >
+        图表示例
+      </button>
     </div>
 
     <router-link
@@ -439,5 +450,88 @@ const datePickerData = {
   },
 };
 
-const currentData = ref(datePickerData);
+const chartData = {
+  version: "0.8",
+  title: "数据可视化示例",
+  analysis: "展示饼图、折线图和柱状图三种图表类型",
+  uiNode: {
+    id: "chart_root",
+    type: "container",
+    style: {
+      className: "flex flex-col gap-6 p-6 max-w-4xl mx-auto",
+    },
+    children: [
+      {
+        id: "header",
+        type: "container",
+        style: { className: "text-center mb-4" },
+        children: [
+          {
+            id: "title",
+            type: "text",
+            props: { text: "航空数据分析", usageHint: "h2" },
+            style: { className: "font-extrabold text-slate-900 text-2xl" },
+          },
+        ],
+      },
+      {
+        id: "pie_chart",
+        type: "chart",
+        props: {
+          chartType: "pie",
+          chartData: {
+            title: "航班延误原因分析",
+            data: [
+              { name: "天气原因", value: 35 },
+              { name: "机械故障", value: 20 },
+              { name: "流量控制", value: 25 },
+              { name: "其他", value: 20 },
+            ],
+          },
+          height: "350px",
+        },
+      },
+      {
+        id: "line_chart",
+        type: "chart",
+        props: {
+          chartType: "line",
+          chartData: {
+            title: "本周航班准点率趋势",
+            xAxis: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+            series: [
+              {
+                name: "准点率(%)",
+                data: [92, 88, 95, 90, 93, 96, 94],
+              },
+            ],
+          },
+          height: "350px",
+        },
+        style: { className: "mt-6" },
+      },
+      {
+        id: "bar_chart",
+        type: "chart",
+        props: {
+          chartType: "bar",
+          chartData: {
+            title: "各机位使用频率统计",
+            xAxis: ["201机位", "15机位", "502机位", "A06机位", "B12机位"],
+            series: [
+              {
+                name: "使用次数",
+                data: [120, 200, 150, 80, 70],
+              },
+            ],
+          },
+          height: "350px",
+        },
+        style: { className: "mt-6" },
+      },
+    ],
+  },
+};
+
+const currentData = ref(chartData);
 </script>

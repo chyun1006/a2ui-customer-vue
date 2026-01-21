@@ -39,6 +39,7 @@ import DynamicInput from "./atoms/DynamicInput.vue";
 import DynamicSelect from "./atoms/DynamicSelect.vue";
 import DynamicTextarea from "./atoms/DynamicTextarea.vue";
 import DynamicDatePicker from "./atoms/DynamicDatePicker.vue";
+import DynamicChart from "./atoms/DynamicChart.vue";
 import DynamicIcon from "./atoms/DynamicIcon.vue";
 import DynamicBadge from "./atoms/DynamicBadge.vue";
 import DynamicDivider from "./atoms/DynamicDivider.vue";
@@ -79,6 +80,7 @@ const componentMap = {
   select: DynamicSelect,
   textarea: DynamicTextarea,
   datepicker: DynamicDatePicker,
+  chart: DynamicChart,
   icon: DynamicIcon,
   badge: DynamicBadge,
   divider: DynamicDivider,

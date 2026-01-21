@@ -16,7 +16,8 @@
       {{ data.analysis }}
     </div>
   </div>
-  <div class="w-full bg-white rounded-2xl">
+
+  <div class="w-full bg-white rounded-2xl animate-fade-in-up shadow-sm">
     <RenderNode
       v-if="data.uiNode"
       :node="data.uiNode"

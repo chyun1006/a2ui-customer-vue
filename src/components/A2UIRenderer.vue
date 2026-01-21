@@ -12,20 +12,20 @@
       </span>
     </div>
 
-    <div v-if="data.analysis" class="px-4 pt-2.5 text-slate-500 text-[12px]">
+    <div v-if="data.analysis" class="p-4 pt-2.5 text-slate-500 text-[12px]">
       {{ data.analysis }}
     </div>
 
     <!-- Content -->
-    <div class="p-4">
-      <RenderNode
-        v-if="data.uiNode"
-        :node="data.uiNode"
-        :form-state="formState"
-        @update:form-state="updateFormState"
-        @action-click="handleActionClick"
-      />
-    </div>
+  </div>
+  <div class="w-full bg-white rounded-2xl">
+    <RenderNode
+      v-if="data.uiNode"
+      :node="data.uiNode"
+      :form-state="formState"
+      @update:form-state="updateFormState"
+      @action-click="handleActionClick"
+    />
   </div>
 </template>
 

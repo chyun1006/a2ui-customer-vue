@@ -72,13 +72,13 @@
 
 <script setup>
 import { ref, nextTick, onMounted } from "vue";
-import { ArrowLeft, Sparkles } from "lucide-vue-next";
 import ChatBubble from "../components/chat/ChatBubble.vue";
 import ChatInput from "../components/chat/ChatInput.vue";
 import {
   sendChatMessage,
   generateSessionId,
   getApprovalCount,
+  getUserInfo,
 } from "../api/chat";
 import { FUNCTION_ITEMS } from "../constants";
 import { useRoute } from "vue-router";
@@ -89,7 +89,6 @@ const workno = route.query.workno;
 const messages = ref([]);
 const isLoading = ref(false);
 const sessionId = ref("");
-const messagesContainer = ref(null);
 const messagesEnd = ref(null);
 const quickActions = ref(FUNCTION_ITEMS);
 
@@ -97,12 +96,15 @@ const quickActions = ref(FUNCTION_ITEMS);
 onMounted(async () => {
   sessionId.value = generateSessionId();
 
+  const userInfo = await getUserInfo(workno);
+  const message = `您好，${userInfo.name}(${workno})，我是鸿小通。有什么可以帮您的吗?`;
+
   // 添加欢迎消息
   messages.value.push({
     id: Date.now().toString(),
     sender: "ai",
     type: "text",
-    content: "您好,我是鸿小通。请问有什么可以帮您?",
+    content: message,
     timestamp: new Date(),
   });
 
@@ -192,6 +194,7 @@ const genUserMessage = (message) => {
 };
 
 const sendMessage = async (payload, loadingId) => {
+  fetchApprovalCount();
   try {
     isLoading.value = true;
     // 调用 API

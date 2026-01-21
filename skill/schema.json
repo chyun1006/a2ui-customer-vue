@@ -154,6 +154,10 @@
               "height": {
                 "type": "string",
                 "description": "图表高度，如 '300px', '400px'。适用于: chart"
+              },
+              "value": {
+                "type": "string",
+                "description": "表单字段的默认值。适用于: input, select, textarea, datepicker。设置后会自动填充到表单中。"
               }
             }
           },

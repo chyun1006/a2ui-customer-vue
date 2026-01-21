@@ -611,6 +611,7 @@ const schemaTestData = {
               name: "username",
               placeholder: "请输入用户名",
               iconName: "User",
+              value: "张三", // 默认值
             },
           },
           {
@@ -620,6 +621,7 @@ const schemaTestData = {
               label: "角色",
               name: "role",
               placeholder: "请选择角色",
+              value: "admin", // 默认值
               options: [
                 { label: "管理员", value: "admin" },
                 { label: "普通用户", value: "user" },
@@ -636,6 +638,7 @@ const schemaTestData = {
               name: "birthday",
               placeholder: "请选择日期",
               iconName: "Calendar",
+              value: "1990-01-01", // 默认值
             },
             style: { className: "mt-3" },
           },
@@ -647,6 +650,7 @@ const schemaTestData = {
               name: "bio",
               placeholder: "请输入个人简介...",
               rows: 4,
+              value: "这是一段默认的个人简介内容,用于演示表单默认值功能。", // 默认值
             },
             style: { className: "mt-3" },
           },

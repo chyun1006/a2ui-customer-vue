@@ -124,6 +124,16 @@ const RenderNode = {
         type === "datepicker"
       ) {
         const fieldName = nodeProps.name || nodeProps.label || "";
+
+        // 如果 props 中有 value 且 formState 中还没有值,则使用 props.value 作为初始值
+        if (
+          nodeProps.value !== undefined &&
+          nodeProps.value !== null &&
+          !props.formState[fieldName]
+        ) {
+          props.formState[fieldName] = nodeProps.value;
+        }
+
         componentProps.modelValue = props.formState[fieldName] || "";
         componentProps["onUpdate:modelValue"] = (value) => {
           emit("update:form-state", fieldName, value);

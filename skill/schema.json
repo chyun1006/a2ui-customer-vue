@@ -29,6 +29,7 @@
               "input",
               "select",
               "textarea",
+              "datepicker",
               "icon",
               "divider",
               "badge",

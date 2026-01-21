@@ -65,7 +65,10 @@ const timeString = computed(() => {
     </div> -->
 
     <!-- Message Content -->
-    <div class="flex flex-col w-full" :class="isUser ? 'items-end' : 'items-start'">
+    <div
+      class="flex flex-col w-full"
+      :class="isUser ? 'items-end' : 'items-start'"
+    >
       <div class="flex items-center mb-2">
         <div
           v-if="isAgent || isLoader"
@@ -73,7 +76,9 @@ const timeString = computed(() => {
         >
           <img src="@/assets/logo.png" alt="" srcset="" />
         </div>
-        <span v-if="isAgent" class="text-[10px] text-slate-400">鸿小通 {{ timeString }}</span>
+        <span v-if="isAgent" class="text-[10px] text-slate-400"
+          >鸿小通 {{ timeString }}</span
+        >
       </div>
 
       <!-- Loader -->
@@ -102,13 +107,44 @@ const timeString = computed(() => {
           v-if="message.thought"
           class="flex bg-indigo-50/50 rounded-xl p-3 gap-1 border border-indigo-100/50 inline-block w-full"
         >
-          <div class="flex items-center gap-1.5">
-            <Sparkles class="w-3 h-3 text-indigo-400" />
-            <!-- <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wide"
-              >思考中...</span
-            > -->
+          <div
+            className="bg-white/80 backdrop-blur-sm border border-blue-100 p-4 rounded-2xl rounded-tl-sm shadow-[0_1px_3px_rgba(0,0,0,0.03)] flex items-center gap-3 w-fit"
+          >
+            <div className="relative w-5 h-5">
+              <div
+                className="absolute inset-0 border-2 border-blue-200 rounded-full"
+              ></div>
+              <div
+                className="absolute inset-0 border-2 border-blue-600 rounded-full border-t-transparent animate-spin"
+              ></div>
+            </div>
+            <div className="flex flex-col">
+              <span
+                className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-1"
+              >
+                {/* Replaced Sparkles with generic element since Sparkles isn't
+                imported here anymore */}
+                <svg
+                  className="w-3 h-3 text-blue-500"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                  ></path>
+                </svg>
+                正在思考...
+              </span>
+              <span className="text-[10px] text-slate-400"
+                >正在构建动态交互界面...</span
+              >
+            </div>
           </div>
-          <p class="text-[11px] text-indigo-800/80 leading-relaxed italic">{{ message.thought }}</p>
+          <p class="text-[11px] text-indigo-800/80 leading-relaxed italic">
+            {{ message.thought }}
+          </p>
         </div>
 
         <!-- Main Content -->
@@ -133,7 +169,9 @@ const timeString = computed(() => {
           >
             <div class="items-center gap-2 text-slate-500 text-xs">
               <!-- <Loader2 class="w-4 h-4 animate-spin text-blue-500" /> -->
-              <span class="text-xs font-bold text-slate-500">{{ message.content }}</span>
+              <span class="text-xs font-bold text-slate-500">{{
+                message.content
+              }}</span>
               <div
                 v-if="message.widgetPayload?.rawText"
                 class="prose prose-sm max-w-none text-slate-700 leading-7"
@@ -150,7 +188,9 @@ const timeString = computed(() => {
         @action="handleAction"
       ></a2uiRender>
       <!-- User timestamp (Right) -->
-      <span v-if="isUser" class="text-[9px] text-slate-300 mt-1 mr-1">{{ timeString }}</span>
+      <span v-if="isUser" class="text-[9px] text-slate-300 mt-1 mr-1">{{
+        timeString
+      }}</span>
     </div>
   </div>
 </template>

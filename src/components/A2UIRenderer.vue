@@ -38,6 +38,7 @@ import DynamicButton from "./atoms/DynamicButton.vue";
 import DynamicInput from "./atoms/DynamicInput.vue";
 import DynamicSelect from "./atoms/DynamicSelect.vue";
 import DynamicTextarea from "./atoms/DynamicTextarea.vue";
+import DynamicDatePicker from "./atoms/DynamicDatePicker.vue";
 import DynamicIcon from "./atoms/DynamicIcon.vue";
 import DynamicBadge from "./atoms/DynamicBadge.vue";
 import DynamicDivider from "./atoms/DynamicDivider.vue";
@@ -77,6 +78,7 @@ const componentMap = {
   input: DynamicInput,
   select: DynamicSelect,
   textarea: DynamicTextarea,
+  datepicker: DynamicDatePicker,
   icon: DynamicIcon,
   badge: DynamicBadge,
   divider: DynamicDivider,
@@ -113,7 +115,12 @@ const RenderNode = {
       };
 
       // 处理表单组件的双向绑定
-      if (type === "input" || type === "select" || type === "textarea") {
+      if (
+        type === "input" ||
+        type === "select" ||
+        type === "textarea" ||
+        type === "datepicker"
+      ) {
         const fieldName = nodeProps.name || nodeProps.label || "";
         componentProps.modelValue = props.formState[fieldName] || "";
         componentProps["onUpdate:modelValue"] = (value) => {

@@ -38,8 +38,24 @@
         class="bg-white border border-slate-100 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl p-4 shadow-sm"
       >
         <div class="flex items-center gap-2 text-slate-500 text-xs">
-          <component :is="Loader2" class="w-4 h-4 animate-spin text-blue-500" />
-          <span>正在思考...</span>
+          <div className="relative w-5 h-5">
+            <div
+              className="absolute inset-0 border-2 border-blue-200 rounded-full"
+            ></div>
+            <div
+              className="absolute inset-0 border-2 border-blue-600 rounded-full border-t-transparent animate-spin"
+            ></div>
+          </div>
+          <div className="flex flex-col">
+            <span
+              className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-1"
+            >
+              正在思考...
+            </span>
+            <span className="text-[10px] text-slate-400">
+              正在构建动态交互界面...
+            </span>
+          </div>
         </div>
       </div>
 

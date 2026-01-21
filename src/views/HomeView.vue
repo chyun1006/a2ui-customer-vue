@@ -68,7 +68,7 @@
     </div>
 
     <router-link
-      to="/chat"
+      to="/chat?workno=1760023"
       class="block w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
     >
       进入聊天模式 →

@@ -20,7 +20,10 @@
     </header> -->
 
     <!-- 消息列表 -->
-    <main ref="messagesContainer" class="flex-1 overflow-y-auto p-4 pb-32">
+    <main
+      ref="messagesContainer"
+      class="flex-1 overflow-y-auto no-scrollbar p-4 pb-32"
+    >
       <ChatBubble
         v-for="msg in messages"
         :key="msg.id"

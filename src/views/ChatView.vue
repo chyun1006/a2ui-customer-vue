@@ -97,7 +97,7 @@ onMounted(async () => {
   sessionId.value = generateSessionId();
 
   const userInfo = await getUserInfo(workno);
-  const message = `您好，${userInfo.name}(${workno})，我是鸿小通。有什么可以帮您的吗?`;
+  const message = `您好，${userInfo.name ?? ""}(${workno})，我是鸿小通。有什么可以帮您的吗?`;
 
   // 添加欢迎消息
   messages.value.push({

@@ -1,5 +1,5 @@
-// const BASE_URL = 'http://10.30.32.110:8080'
-const BASE_URL = "";
+const BASE_URL = "http://10.30.32.110:8080";
+// const BASE_URL = "";
 
 /**
  * 发送聊天消息到后端

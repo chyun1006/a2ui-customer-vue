@@ -29,7 +29,6 @@
   flex-direction: column;
   gap: 1.25rem;
   background: var(--jr-bg);
-  border: 1px solid var(--jr-border);
   border-radius: var(--jr-radius-lg);
   padding: 1.5rem; /* 相当于 shadcn card 的 p-6 */
   box-shadow: var(--jr-shadow);

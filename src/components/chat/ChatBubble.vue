@@ -4,10 +4,7 @@
     :class="isUser ? 'justify-end' : 'justify-start'"
   >
     <!-- 用户消息 -->
-    <div
-      v-if="isUser"
-      class="flex flex-col items-end max-w-[80%]"
-    >
+    <div v-if="isUser" class="flex flex-col items-end max-w-[80%]">
       <div
         class="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 shadow-md text-sm leading-relaxed"
       >
@@ -32,39 +29,36 @@
         <span class="text-[10px] text-slate-400">鸿小通 {{ timeString }}</span>
       </div>
 
-      <!-- 加载状态 -->
+      <!-- 加载状态：刚开始流式、还没有任何文本和 UI 时 -->
       <div
-        v-if="message.type === 'loading' || isStreaming"
+        v-if="showLoadingBubble"
         class="bg-white border border-slate-100 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl p-4 shadow-sm"
       >
         <div class="flex items-center gap-2 text-slate-500 text-xs">
-          <div className="relative w-5 h-5">
+          <div class="relative w-5 h-5">
             <div
-              className="absolute inset-0 border-2 border-blue-200 rounded-full"
+              class="absolute inset-0 border-2 border-blue-200 rounded-full"
             ></div>
             <div
-              className="absolute inset-0 border-2 border-blue-600 rounded-full border-t-transparent animate-spin"
+              class="absolute inset-0 border-2 border-blue-600 rounded-full border-t-transparent animate-spin"
             ></div>
           </div>
-          <div className="flex flex-col">
+          <div class="flex flex-col">
             <span
-              className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-1"
+              class="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center gap-1"
             >
               正在思考...
-            </span>
-            <span className="text-[10px] text-slate-400">
-              正在构建动态交互界面...
             </span>
           </div>
         </div>
       </div>
 
       <!-- 富 UI 消息（Spec 或 A2UI） -->
-      <div v-else-if="hasSpec || message.type === 'a2ui'" class="flex flex-col gap-2">
+      <div v-else-if="hasSpec || message.type === 'a2ui'">
         <!-- Markdown 内容气泡（含流式文本） -->
         <div
           v-if="displayText"
-          class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
+          class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100 mb-2"
         >
           <div
             class="prose prose-sm max-w-none text-slate-700 leading-relaxed"
@@ -89,7 +83,7 @@
       </div>
 
       <!-- 普通文本消息（含流式） -->
-      <div v-else class="flex flex-col items-start gap-1">
+      <!-- <div v-else class="flex flex-col items-start gap-1">
         <div
           class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
         >
@@ -97,11 +91,14 @@
             {{ displayText }}
           </p>
         </div>
-        <!-- 流式回答时，在左侧气泡底部显示 LoadingDots -->
-        <LoadingDots
-          v-if="isStreaming"
-          class="ml-2 mt-0.5"
-        />
+      </div> -->
+      <!-- 流式回答时，在文本气泡下方显示更柔和的 Loading 效果 -->
+      <div
+        v-if="isStreaming && !showLoadingBubble"
+        class="mt-1 px-2 py-0.5 flex items-center gap-1 ml-1"
+      >
+        <span class="text-[10px] text-slate-400">正在生成</span>
+        <LoadingDots class="scale-75" />
       </div>
     </div>
   </div>
@@ -157,7 +154,11 @@ const mainText = computed(() => {
 
 // 流式时优先显示 currentText（SSE 实时内容），否则显示消息里的 mainText
 const displayText = computed(() => {
-  if (props.isStreaming && props.currentText !== undefined && props.currentText !== "") {
+  if (
+    props.isStreaming &&
+    props.currentText !== undefined &&
+    props.currentText !== ""
+  ) {
     return props.currentText;
   }
   return mainText.value;
@@ -165,6 +166,11 @@ const displayText = computed(() => {
 
 const hasSpec = computed(() => {
   return !!(props.streamingSpec || (props.message && props.message.spec));
+});
+
+// 是否展示顶部「正在思考」骨架气泡：仅在流式开始阶段、还没有任何文本和 UI 时出现
+const showLoadingBubble = computed(() => {
+  return props.isStreaming && !displayText.value && !hasSpec.value;
 });
 
 const markdownHtml = computed(() => {

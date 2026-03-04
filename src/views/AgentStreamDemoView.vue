@@ -112,7 +112,7 @@ if (typeof window !== "undefined") {
 // 初始化欢迎语 & 业务角标
 onMounted(async () => {
   const userInfo = await getUserInfo(workno);
-  const message = `您好，${userInfo.name ?? ""}(${workno ?? ""})，这里是 CoPaw 智能体，会通过 /api/chat（内置 A2UI 能力）为您服务。`;
+  const message = `您好，这里是 CoPaw 智能体为您服务。`;
 
   messages.value.push({
     id: `assistant-welcome-${Date.now()}`,

@@ -10,6 +10,7 @@ import {
 import type { Spec } from '@json-render/core'
 import { registry as defaultRegistry, handlers } from './registry'
 import ErrorBoundary from './components/ErrorBoundary.vue'
+import { validateSpec } from './validateSpec'
 
 const props = withDefaults(
   defineProps<{
@@ -20,12 +21,14 @@ const props = withDefaults(
   { loading: false },
 )
 
+const validSpec = computed(() => validateSpec(props.spec))
+
 const store = shallowRef(createStateStore({}))
 /** 仅当 root 变化时用 spec.state 初始化 store，避免流式更新覆盖用户已填写的表单 */
 const lastInitedRoot = shallowRef<string | null>(null)
 
 watch(
-  () => props.spec,
+  validSpec,
   (newSpec) => {
     if (!newSpec?.root) {
       lastInitedRoot.value = null
@@ -66,9 +69,9 @@ const actionHandlers = computed(() =>
   <StateProvider :store="store">
     <VisibilityProvider>
       <ActionProvider :handlers="actionHandlers">
-        <ErrorBoundary v-if="spec?.root && spec?.elements?.[spec.root]">
+        <ErrorBoundary v-if="validSpec?.root && validSpec?.elements?.[validSpec.root]">
           <Renderer
-            :spec="spec"
+            :spec="validSpec"
             :registry="registry"
             :loading="loading"
           />

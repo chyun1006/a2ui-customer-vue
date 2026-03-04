@@ -2,23 +2,6 @@
   <div
     class="flex flex-col h-screen bg-slate-50 relative shadow-2xl overflow-hidden"
   >
-    <!-- 顶部导航栏 -->
-    <!-- <header class="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-100 sticky top-0 z-20 shadow-sm">
-      <router-link
-        to="/"
-        class="p-2 hover:bg-slate-100 rounded-full transition-colors"
-      >
-        <component :is="ArrowLeft" class="w-5 h-5 text-slate-700" />
-      </router-link>
-      
-      <div class="flex items-center gap-2">
-        <img src="/src/assets/logo.png" alt="鸿小通" class="w-8 h-8" />
-        <span class="font-bold text-lg text-slate-800">鸿小通</span>
-      </div>
-      
-      <div class="w-9" />
-    </header> -->
-
     <!-- 消息列表 -->
     <main
       ref="messagesContainer"
@@ -93,17 +76,15 @@
 import { ref, nextTick, onMounted, watch } from "vue";
 import ChatBubble from "../components/chat/ChatBubble.vue";
 import ChatInput from "../components/chat/ChatInput.vue";
-import {
-  getApprovalCount,
-  getUserInfo,
-} from "../api/chat";
+import { getApprovalCount, getUserInfo } from "../api/chat";
 import { FUNCTION_ITEMS } from "../constants";
 import { useRoute } from "vue-router";
 import { useChatStream } from "../composables/useChatStream";
+
 const route = useRoute();
 const workno = route.query.workno;
 
-// 聊天流式状态
+// 聊天流式状态（复用 /api/chat + useChatStream）
 const {
   messages,
   currentText,
@@ -128,12 +109,11 @@ if (typeof window !== "undefined") {
   };
 }
 
-// 初始化
+// 初始化欢迎语 & 业务角标
 onMounted(async () => {
   const userInfo = await getUserInfo(workno);
-  const message = `您好，${userInfo.name ?? ""}(${workno})，我是鸿小通。有什么可以帮您的吗?`;
+  const message = `您好，${userInfo.name ?? ""}(${workno ?? ""})，这里是 CoPaw 智能体，会通过 /api/chat（内置 A2UI 能力）为您服务。`;
 
-  // 添加欢迎消息
   messages.value.push({
     id: `assistant-welcome-${Date.now()}`,
     role: "assistant",
@@ -142,7 +122,6 @@ onMounted(async () => {
   });
   scrollToBottom();
 
-  // 获取待审核数量
   if (workno) {
     await fetchApprovalCount();
   }
@@ -177,6 +156,7 @@ const fetchApprovalCount = async () => {
       }
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("获取待审核数量失败:", error);
   }
 };
@@ -197,7 +177,7 @@ const handleChatAction = (actionName, text, formState) => {
 };
 
 // 处理发送消息
-const handleSendMessage = async (message) => {
+const handleSendMessage = (message) => {
   send(message);
 };
 </script>

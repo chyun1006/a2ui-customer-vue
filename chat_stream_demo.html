@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CoPaw 智能体聊天流式 Demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1120;
+        --fg: #e5e7eb;
+        --accent: #22c55e;
+        --accent-soft: rgba(34, 197, 94, 0.15);
+        --border: #1f2937;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(circle at top, #1e293b 0, #020617 60%);
+        color: var(--fg);
+      }
+      .card {
+        width: 100%;
+        max-width: 960px;
+        background: rgba(15, 23, 42, 0.9);
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 22px 45px rgba(15, 23, 42, 0.8);
+        padding: 20px 22px 18px;
+        backdrop-filter: blur(16px);
+      }
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: #9ca3af;
+      }
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      h1 span.logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 20%, #4ade80 0, #22c55e 40%, #0f766e 100%);
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9),
+          0 10px 25px rgba(34, 197, 94, 0.45);
+        font-size: 14px;
+      }
+      h1 span.sub {
+        font-size: 12px;
+        font-weight: 400;
+        color: #9ca3af;
+      }
+      .status {
+        font-size: 12px;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #4b5563;
+      }
+      .status-dot.active {
+        background: #22c55e;
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+      }
+      .section {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 12px 12px 10px;
+        margin-bottom: 10px;
+        background: radial-gradient(circle at top left, rgba(51, 65, 85, 0.3), transparent 55%);
+      }
+      .section + .section {
+        margin-top: 6px;
+      }
+      .section-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: #9ca3af;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .section-title span.tip {
+        font-size: 11px;
+        color: #6b7280;
+      }
+      label {
+        font-size: 12px;
+        color: #9ca3af;
+        display: block;
+        margin-bottom: 4px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--fg);
+        font-size: 12px;
+        outline: none;
+      }
+      input[type="text"]::placeholder {
+        color: #4b5563;
+      }
+      input[type="text"]:focus {
+        border-color: rgba(34, 197, 94, 0.8);
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1.9fr);
+        gap: 10px;
+        align-items: stretch;
+      }
+      textarea {
+        width: 100%;
+        min-height: 120px;
+        max-height: 240px;
+        padding: 8px 9px;
+        border-radius: 10px;
+        border: 1px solid rgba(55, 65, 81, 0.95);
+        background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+        color: var(--fg);
+        font-size: 13px;
+        line-height: 1.5;
+        resize: vertical;
+        outline: none;
+      }
+      textarea::placeholder {
+        color: #4b5563;
+      }
+      textarea:focus {
+        border-color: rgba(34, 197, 94, 0.9);
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.6);
+      }
+      .output {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        background: radial-gradient(circle at top, #020617, #020617 60%);
+        border-radius: 10px;
+        border: 1px solid rgba(31, 41, 55, 0.95);
+        padding: 8px 9px;
+        font-size: 12px;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-y: auto;
+        max-height: 240px;
+      }
+      .output.empty::before {
+        content: "等待响应...";
+        color: #4b5563;
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 8px;
+      }
+      .btn-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        background: linear-gradient(135deg, #22c55e, #4ade80);
+        color: #022c22;
+        box-shadow: 0 12px 25px rgba(22, 163, 74, 0.55);
+      }
+      button.secondary {
+        background: rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+        border-color: rgba(55, 65, 81, 0.9);
+        box-shadow: none;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+        box-shadow: none;
+      }
+      .status-text {
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(55, 65, 81, 0.9);
+        color: #e5e7eb;
+      }
+      @media (max-width: 800px) {
+        body {
+          padding: 12px;
+        }
+        .card {
+          padding: 16px 14px 12px;
+        }
+        .grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="card-header">
+        <div class="title-wrap">
+          <h1>
+            <span class="logo">🐾</span>
+            <span>CoPaw Agent Streaming Demo</span>
+            <span class="sub">POST /api/agent/process · SSE</span>
+          </h1>
+          <span class="badge">Standalone HTML</span>
+        </div>
+        <div class="status">
+          <span id="status-dot" class="status-dot"></span>
+          <span id="status-label">空闲</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>服务配置</span>
+          <span class="tip">默认指向 http://10.22.10.28:8088/api/agent/process</span>
+        </div>
+        <label for="baseUrl">Base URL（可根据实际环境修改）</label>
+        <input
+          id="baseUrl"
+          type="text"
+          value="http://10.22.10.28:8088"
+          spellcheck="false"
+        />
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>会话与请求</span>
+          <span class="tip">
+            body 格式参考
+            <code>{"input":[{"role":"user","content":[{"type":"text","text":"Hello"}]}],"session_id":"session123"}</code>
+          </span>
+        </div>
+        <div class="grid">
+          <div>
+            <label for="sessionId">session_id（同一值表示多轮对话）</label>
+            <input
+              id="sessionId"
+              type="text"
+              value="demo-session-1"
+              placeholder="例如：demo-session-1"
+              spellcheck="false"
+            />
+
+            <label for="userInput" style="margin-top: 8px">用户消息</label>
+            <textarea
+              id="userInput"
+              placeholder="在这里输入要发送给智能体的内容，例如：帮我列一个上海 3 日游行程。"
+            ></textarea>
+          </div>
+
+          <div>
+            <label for="responseOutput">流式响应（原始 SSE 文本）</label>
+            <div id="responseOutput" class="output empty"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <div class="btn-row">
+            <button id="sendBtn" type="button">
+              <span>发送消息并流式接收</span>
+            </button>
+            <button id="clearBtn" type="button" class="secondary">
+              清空响应
+            </button>
+          </div>
+          <div class="status-text" id="detailStatus">
+            已准备就绪
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const baseUrlInput = document.getElementById("baseUrl");
+      const sessionIdInput = document.getElementById("sessionId");
+      const userInput = document.getElementById("userInput");
+      const responseOutput = document.getElementById("responseOutput");
+      const sendBtn = document.getElementById("sendBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const statusDot = document.getElementById("status-dot");
+      const statusLabel = document.getElementById("status-label");
+      const detailStatus = document.getElementById("detailStatus");
+
+      function setBusy(busy, text) {
+        if (busy) {
+          statusDot.classList.add("active");
+          statusLabel.textContent = "请求中";
+          sendBtn.disabled = true;
+        } else {
+          statusDot.classList.remove("active");
+          statusLabel.textContent = "空闲";
+          sendBtn.disabled = false;
+        }
+        if (text) detailStatus.textContent = text;
+      }
+
+      function appendChunk(chunk) {
+        if (responseOutput.classList.contains("empty")) {
+          responseOutput.classList.remove("empty");
+          responseOutput.textContent = "";
+        }
+        responseOutput.textContent += chunk;
+        responseOutput.scrollTop = responseOutput.scrollHeight;
+      }
+
+      async function sendMessage() {
+        let base = baseUrlInput.value.trim();
+        if (base.endsWith("/")) {
+          base = base.slice(0, -1);
+        }
+        const endpoint = base + "/api/agent/process";
+        const text = userInput.value.trim();
+        const sessionId = sessionIdInput.value.trim() || "demo-session";
+
+        if (!base) {
+          alert("请填写 Base URL，例如：http://10.22.10.28:8088");
+          return;
+        }
+        if (!text) {
+          alert("请先输入要发送的消息内容。");
+          return;
+        }
+
+        responseOutput.classList.add("empty");
+        responseOutput.textContent = "";
+        setBusy(true, "发送中...");
+
+        const body = {
+          input: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text,
+                },
+              ],
+            },
+          ],
+          session_id: sessionId,
+          // 可选字段：user_id / channel / stream 等，如有需要可取消注释
+          // user_id: "demo-user",
+          // channel: "console",
+          stream: true,
+        };
+
+        try {
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // 如果你的服务端开启了鉴权，这里可以手动加上：
+              // "Authorization": "Bearer <YOUR_TOKEN>",
+            },
+            body: JSON.stringify(body),
+          });
+
+          if (!res.ok || !res.body) {
+            setBusy(false, "HTTP 错误: " + res.status);
+            let text = "";
+            try {
+              text = await res.text();
+            } catch (e) {
+              text = "";
+            }
+            if (text) {
+              responseOutput.classList.remove("empty");
+              responseOutput.textContent = text;
+            }
+            return;
+          }
+
+          setBusy(true, "流式接收中...");
+
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            appendChunk(chunk);
+          }
+
+          setBusy(false, "已完成（连接关闭）");
+        } catch (err) {
+          console.error(err);
+          setBusy(false, "请求失败: " + err);
+        }
+      }
+
+      sendBtn.addEventListener("click", () => {
+        void sendMessage();
+      });
+
+      clearBtn.addEventListener("click", () => {
+        responseOutput.classList.add("empty");
+        responseOutput.textContent = "";
+        detailStatus.textContent = "已清空响应";
+      });
+
+      userInput.addEventListener("keydown", (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault();
+          void sendMessage();
+        }
+      });
+    </script>
+  </body>
+</html>
+

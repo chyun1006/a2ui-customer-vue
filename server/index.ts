@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
-import { catalog } from '../src/spec-design/renderer/catalog/index.ts'
+import { catalog } from '../src/components/renderer/catalog/index.ts'
 
 const app = express()
 app.use(express.json())
@@ -76,10 +76,10 @@ app.post('/api/chat', async (req, res) => {
    任何其他名称（Section、Wrapper、BarChartSeries 等）均不存在，不能使用。
 
 3. **Spec 结构与 children 规则**：
+   - **每个元素必须包含 "children" 字段**：有子节点时为 ID 数组 \`"children": ["el-a", "el-b"]\`；无子节点时**必须**写 \`"children": []\`，**禁止省略**，否则前端校验失败。
    - children 只能是字符串 ID 数组：
-     - 正确：\`"children": ["el-a", "el-b"]\`
-     - 错误：\`"children": "el-a"\`（字符串）
-     - 错误：\`"children": [{"type":"Metric",...}]\`（内联对象）
+     - 正确：\`"children": ["el-a", "el-b"]\` 或 \`"children": []\`
+     - 错误：省略 children、\`"children": "el-a"\`（字符串）、\`"children": [{"type":"Metric",...}]\`（内联对象）
      每个元素必须以 JSONL patch 形式单独加入 elements，然后在父级 children 中用 ID 引用。
    - \`/elements/{id}\` 对应的元素对象**只允许**顶层字段：\`type\`、\`props\`、\`children\`、\`repeat\`、\`on\`、\`visible\` 等，**禁止**再出现 \`"0"\`、\`"items"\` 之类任意自定义 key。子元素必须作为 \`/elements/{childId}\` 的独立元素，通过父元素的 \`children: ["childId"]\` 来引用，**绝不能把子元素内联在父元素对象里**。
 
@@ -98,19 +98,18 @@ app.post('/api/chat', async (req, res) => {
 2. **看板/仪表盘场景**：先 Heading 做页面标题 → Grid(3 列)排 Metric 指标卡 → Card 包裹每个图表。
 3. **表单场景**：用 Card 做外层容器，内部 Column 排列字段，底部 Row 放 Button。表单必须包含：(1) 每个需收集字段的 state 初始化 patch；(2) Input/TextArea 的 value 使用 \`$bindState\`；(3) 提交按钮的 \`on.press\` 绑定 \`submit_form\`，详见完整示例 2。
 4. **数值展示**：Metric 的 value 用数字而非字符串（50000 而非 "50000"），trend 搭配 trendValue 展示趋势。
-5. **避免空 children**：如果一个组件没有子元素（如 Metric、BarChart），不要写 "children":[]，直接省略 children 字段。
-6. **Card 的 description** 可以为 null，无描述时设为 null 而非空字符串。
+5. **Card 的 description** 可以为 null，无描述时设为 null 而非空字符串。
 
 # 完整示例 1 —— 销售看板
 \`\`\`spec
 {"op":"add","path":"/root","value":"dashboard"}
 {"op":"add","path":"/elements/dashboard","value":{"type":"Column","props":{"gap":"md"},"children":["kpi-row","chart"]}}
 {"op":"add","path":"/elements/kpi-row","value":{"type":"Grid","props":{"columns":"3"},"children":["kpi-1","kpi-2","kpi-3"]}}
-{"op":"add","path":"/elements/kpi-1","value":{"type":"Metric","props":{"label":"总销售额","value":128000,"unit":"元","trend":"up","trendValue":"+12%"}}}
-{"op":"add","path":"/elements/kpi-2","value":{"type":"Metric","props":{"label":"订单数","value":342,"unit":"单","trend":"up","trendValue":"+5%"}}}
-{"op":"add","path":"/elements/kpi-3","value":{"type":"Metric","props":{"label":"退款率","value":"2.3%","unit":null,"trend":"down","trendValue":"-0.5%"}}}
+{"op":"add","path":"/elements/kpi-1","value":{"type":"Metric","props":{"label":"总销售额","value":128000,"unit":"元","trend":"up","trendValue":"+12%"},"children":[]}}
+{"op":"add","path":"/elements/kpi-2","value":{"type":"Metric","props":{"label":"订单数","value":342,"unit":"单","trend":"up","trendValue":"+5%"},"children":[]}}
+{"op":"add","path":"/elements/kpi-3","value":{"type":"Metric","props":{"label":"退款率","value":"2.3%","unit":null,"trend":"down","trendValue":"-0.5%"},"children":[]}}
 {"op":"add","path":"/elements/chart","value":{"type":"Card","props":{"title":"近7日销售","description":null},"children":["bar"]}}
-{"op":"add","path":"/elements/bar","value":{"type":"BarChart","props":{"title":null,"categories":["周一","周二","周三","周四","周五","周六","周日"],"series":[{"name":"销售额","data":[12000,18000,15000,22000,19000,28000,14000]}]}}}
+{"op":"add","path":"/elements/bar","value":{"type":"BarChart","props":{"title":null,"categories":["周一","周二","周三","周四","周五","周六","周日"],"series":[{"name":"销售额","data":[12000,18000,15000,22000,19000,28000,14000]}]},"children":[]}}
 \`\`\`
 
 # 完整示例 2 —— 登录表单（表单字段用 $bindState 绑定到 state，按钮用 on.press 绑定 action）
@@ -119,16 +118,16 @@ app.post('/api/chat', async (req, res) => {
 {"op":"add","path":"/state/email","value":""}
 {"op":"add","path":"/state/password","value":""}
 {"op":"add","path":"/elements/login","value":{"type":"Card","props":{"title":"用户登录","description":null},"children":["username","password","submit"]}}
-{"op":"add","path":"/elements/username","value":{"type":"Input","props":{"label":"用户名","placeholder":"请输入用户名","type":"text","value":{"$bindState":"/email"},"disabled":null}}}
-{"op":"add","path":"/elements/password","value":{"type":"Input","props":{"label":"密码","placeholder":"请输入密码","type":"password","value":{"$bindState":"/password"},"disabled":null}}}
-{"op":"add","path":"/elements/submit","value":{"type":"Button","props":{"label":"登录","variant":"primary","size":"md","disabled":null},"on":{"press":{"action":"submit_form","params":{"formId":"login"}}}}}
+{"op":"add","path":"/elements/username","value":{"type":"Input","props":{"label":"用户名","placeholder":"请输入用户名","type":"text","value":{"$bindState":"/email"},"disabled":null},"children":[]}}
+{"op":"add","path":"/elements/password","value":{"type":"Input","props":{"label":"密码","placeholder":"请输入密码","type":"password","value":{"$bindState":"/password"},"disabled":null},"children":[]}}
+{"op":"add","path":"/elements/submit","value":{"type":"Button","props":{"label":"登录","variant":"primary","size":"md","disabled":null},"children":[],"on":{"press":{"action":"submit_form","params":{"formId":"login"}}}}}
 \`\`\`
 
 # 完整示例 3 —— 数据表格（rows 必须直接写在 props 内）
 \`\`\`spec
 {"op":"add","path":"/root","value":"flight-wrap"}
 {"op":"add","path":"/elements/flight-wrap","value":{"type":"Card","props":{"title":"航班列表","description":null},"children":["flight-table"]}}
-{"op":"add","path":"/elements/flight-table","value":{"type":"Table","props":{"columns":[{"key":"flightNo","label":"航班号"},{"key":"from","label":"出发城市"},{"key":"to","label":"到达城市"},{"key":"dep","label":"出发时间"},{"key":"arr","label":"到达时间"}],"rows":[{"flightNo":"CA123","from":"北京","to":"上海","dep":"10:00","arr":"12:00"},{"flightNo":"CA456","from":"上海","to":"广州","dep":"13:00","arr":"15:30"}]}}}
+{"op":"add","path":"/elements/flight-table","value":{"type":"Table","props":{"columns":[{"key":"flightNo","label":"航班号"},{"key":"from","label":"出发城市"},{"key":"to","label":"到达城市"},{"key":"dep","label":"出发时间"},{"key":"arr","label":"到达时间"}],"rows":[{"flightNo":"CA123","from":"北京","to":"上海","dep":"10:00","arr":"12:00"},{"flightNo":"CA456","from":"上海","to":"广州","dep":"13:00","arr":"15:30"}]},"children":[]}}
 \`\`\`
 
 # 完整示例 4 —— 航班列表（使用 repeat + $item 渲染 state 中的数组）
@@ -145,13 +144,17 @@ app.post('/api/chat', async (req, res) => {
   "description": { "$item": "dep" },
   "icon": "Plane",
   "trailing": { "$item": "arr" }
-}}}
+},"children":[]}}
 \`\`\`
-
 ---
 
 # 组件详细说明
-${catalog.prompt({ mode: 'chat' })}
+${catalog.prompt({
+    mode: 'chat',
+    customRules: [
+      '只输出标准扁平 Spec：必须含 root 与 elements；每个元素必须包含 children 字段（有子节点为 ID 数组，无子节点为 []），禁止省略；禁止使用 child、child2 或内联子对象，违者前端将无法渲染。',
+    ],
+  })}
 `
 
   try {

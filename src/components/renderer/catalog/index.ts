@@ -2,8 +2,8 @@ import { defineCatalog } from '@json-render/core'
 import { schema } from '@json-render/vue/schema'
 import { z } from 'zod'
 
-// 独立导出组件定义，便于设计器等工具按元数据渲染组件列表
-export const catalogComponents = {
+export const catalog = defineCatalog(schema, {
+  components: {
     Card: {
       props: z.object({
         title: z.string(),
@@ -245,10 +245,7 @@ export const catalogComponents = {
       description:
         '图标组件，使用 lucide-vue-next 图标库。name 需填写 lucide 图标组件名（例如 \"Search\"、\"Plane\"、\"UserCircle\" 等）。',
     },
-  } as const
-
-export const catalog = defineCatalog(schema, {
-  components: catalogComponents,
+  },
   actions: {
     submit_form: {
       params: z.object({ formId: z.string() }),

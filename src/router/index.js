@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ChatView from '../views/ChatView.vue'
+import AgentStreamDemoView from '../views/AgentStreamDemoView.vue'
 
 const routes = [
   {
@@ -12,6 +13,11 @@ const routes = [
     path: '/chat',
     name: 'chat',
     component: ChatView
+  },
+  {
+    path: '/agent-demo',
+    name: 'agent-demo',
+    component: AgentStreamDemoView
   }
 ]
 

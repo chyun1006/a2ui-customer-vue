@@ -1,39 +1,5 @@
-const BASE_URL = "http://10.30.32.110:8080";
-// const BASE_URL = "";
-
-/**
- * 发送聊天消息到后端
- * @param {string} message - 用户消息
- * @param {string} sessionId - 会话ID
- * @param {string} workNo - 工号
- * @returns {Promise<Object>} API 响应
- */
-export async function sendChatMessage(message, sessionId, workNo = "") {
-  try {
-    const payload = {
-      message: message,
-      sessionId,
-      workNo,
-    };
-    const response = await fetch(`${BASE_URL}/api/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("API 调用失败:", error);
-    throw error;
-  }
-}
+// 使用相对路径，开发时由 Vite 代理到对应后端（/api/chat -> 本地 server，其余 /api -> 业务后端）
+const BASE_URL = "";
 
 /**
  * 查询待我审核的数量

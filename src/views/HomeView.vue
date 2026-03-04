@@ -6,7 +6,7 @@
     </div>
 
     <div class="mb-4">
-      <A2UIRenderer :data="currentData" />
+      <VibeRenderer :spec="currentSpec" />
     </div>
 
     <div class="flex gap-3 mb-4">
@@ -67,18 +67,27 @@
       </button>
     </div>
 
-    <router-link
-      to="/chat?workno=1760023"
-      class="block w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-    >
-      进入聊天模式 →
-    </router-link>
+    <div class="space-y-3">
+      <router-link
+        to="/chat?workno=1760023"
+        class="block w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+      >
+        进入鸿小通聊天 →
+      </router-link>
+
+      <router-link
+        to="/agent-demo"
+        class="block w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-center rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+      >
+        进入 CoPaw 聊天（Agent Streaming） →
+      </router-link>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import A2UIRenderer from "../components/A2UIRenderer.vue";
+import { computed, ref } from "vue";
+import { VibeRenderer } from "../components/renderer";
 
 const loginData = {
   version: "0.8",
@@ -762,4 +771,30 @@ const schemaTestData = {
 };
 
 const currentData = ref(schemaTestData);
+
+// 简单的 A2UI -> Spec 适配，便于复用现有示例数据
+const currentSpec = computed(() => {
+  const data = currentData.value;
+  if (!data || !data.uiNode) return null;
+
+  const elements = {};
+
+  const walk = (node) => {
+    if (!node || !node.id) return;
+    elements[node.id] = {
+      type: node.type,
+      props: node.props || {},
+      children: (node.children || []).map((c) => c.id),
+    };
+    (node.children || []).forEach(walk);
+  };
+
+  walk(data.uiNode);
+
+  return {
+    root: data.uiNode.id,
+    elements,
+    state: {},
+  };
+});
 </script>

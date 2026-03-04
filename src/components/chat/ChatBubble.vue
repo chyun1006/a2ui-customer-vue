@@ -1,17 +1,17 @@
 <template>
   <div
     class="mb-6 flex w-full animate-fade-in-up"
-    :class="message.sender === 'user' ? 'justify-end' : 'justify-start'"
+    :class="isUser ? 'justify-end' : 'justify-start'"
   >
     <!-- 用户消息 -->
     <div
-      v-if="message.sender === 'user'"
+      v-if="isUser"
       class="flex flex-col items-end max-w-[80%]"
     >
       <div
         class="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 shadow-md text-sm leading-relaxed"
       >
-        {{ message.content }}
+        {{ mainText }}
       </div>
       <span class="text-[9px] text-slate-300 mt-1 mr-1">{{ timeString }}</span>
     </div>
@@ -34,7 +34,7 @@
 
       <!-- 加载状态 -->
       <div
-        v-if="message.type === 'loading'"
+        v-if="message.type === 'loading' || isStreaming"
         class="bg-white border border-slate-100 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl p-4 shadow-sm"
       >
         <div class="flex items-center gap-2 text-slate-500 text-xs">
@@ -59,11 +59,11 @@
         </div>
       </div>
 
-      <!-- A2UI 消息 -->
-      <div v-else-if="message.type === 'a2ui'" class="flex flex-col gap-2">
-        <!-- Markdown 内容气泡 -->
+      <!-- 富 UI 消息（Spec 或 A2UI） -->
+      <div v-else-if="hasSpec || message.type === 'a2ui'" class="flex flex-col gap-2">
+        <!-- Markdown 内容气泡（含流式文本） -->
         <div
-          v-if="message.content"
+          v-if="displayText"
           class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
         >
           <div
@@ -72,11 +72,11 @@
           />
         </div>
 
-        <!-- A2UI 组件 -->
-        <A2UIRenderer
-          v-if="message.a2uiData"
-          :data="message.a2uiData"
-          @action-click="handleActionClick"
+        <!-- VibeRenderer / A2UI 组件 -->
+        <VibeRenderer
+          v-if="hasSpec"
+          :spec="streamingSpec || message.spec"
+          :loading="isStreaming"
         />
       </div>
 
@@ -88,12 +88,20 @@
         <p class="text-sm">{{ message.content }}</p>
       </div>
 
-      <!-- 普通文本消息 -->
-      <div
-        v-else
-        class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
-      >
-        <p class="text-sm text-slate-700">{{ message.content }}</p>
+      <!-- 普通文本消息（含流式） -->
+      <div v-else class="flex flex-col items-start gap-1">
+        <div
+          class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
+        >
+          <p class="text-sm text-slate-700 whitespace-pre-wrap">
+            {{ displayText }}
+          </p>
+        </div>
+        <!-- 流式回答时，在左侧气泡底部显示 LoadingDots -->
+        <LoadingDots
+          v-if="isStreaming"
+          class="ml-2 mt-0.5"
+        />
       </div>
     </div>
   </div>
@@ -101,9 +109,8 @@
 
 <script setup>
 import { computed } from "vue";
-import { Loader2 } from "lucide-vue-next";
 import { marked } from "marked";
-import A2UIRenderer from "../A2UIRenderer.vue";
+import { VibeRenderer } from "../renderer";
 import LoadingDots from "./LoadingDots.vue";
 
 const props = defineProps({
@@ -111,9 +118,29 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  isStreaming: {
+    type: Boolean,
+    default: false,
+  },
+  currentText: {
+    type: String,
+    default: "",
+  },
+  streamingSpec: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(["action-click"]);
+
+const isUser = computed(() => {
+  const m = props.message || {};
+  if (m.role) {
+    return m.role === "user";
+  }
+  return m.sender === "user";
+});
 
 const timeString = computed(() => {
   if (!props.message.timestamp) return "";
@@ -123,13 +150,31 @@ const timeString = computed(() => {
   });
 });
 
+const mainText = computed(() => {
+  const m = props.message || {};
+  return m.content || m.text || "";
+});
+
+// 流式时优先显示 currentText（SSE 实时内容），否则显示消息里的 mainText
+const displayText = computed(() => {
+  if (props.isStreaming && props.currentText !== undefined && props.currentText !== "") {
+    return props.currentText;
+  }
+  return mainText.value;
+});
+
+const hasSpec = computed(() => {
+  return !!(props.streamingSpec || (props.message && props.message.spec));
+});
+
 const markdownHtml = computed(() => {
-  if (!props.message.content) return "";
+  const raw = displayText.value;
+  if (!raw) return "";
   try {
-    return marked(props.message.content, { breaks: true });
+    return marked(raw, { breaks: true });
   } catch (error) {
     console.error("Markdown parsing error:", error);
-    return props.message.content;
+    return raw;
   }
 });
 

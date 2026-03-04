@@ -13,15 +13,10 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // 聊天流式接口走本地 server (npm run server，默认 3001)
       "/api": {
-        // target: "http://10.22.15.165:8082/", // 立哥
-        // target: "http://10.22.12.152:8067", // 老唐
-        target: "http://10.22.13.93:8080", // 杰哥
-        // target: "http://10.22.14.136:8080", // 浩哥
+        target: "http://localhost:3001",
         changeOrigin: true,
-        // pathRewrite: {
-        //   "^/api": "",
-        // },
       },
     },
   },

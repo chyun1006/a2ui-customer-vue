@@ -82,14 +82,25 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
       const filtered = messages.value.filter(
         (m) => m.role === 'user' || (m.role === 'assistant' && m.text),
       )
+
       const body =
         requestFormat === 'copaw'
           ? {
               input: filtered.map((m) => ({
                 role: m.role as 'user' | 'assistant',
-                content: [{ type: 'text' as const, text: m.text }],
+                type: 'message' as const,
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: m.text,
+                    status: 'created' as const,
+                  },
+                ],
               })),
               session_id: sessionId(),
+              user_id: 'default',
+              channel: 'console',
+              agent_id: 'default',
               stream: true,
             }
           : {

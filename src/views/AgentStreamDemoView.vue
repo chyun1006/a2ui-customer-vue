@@ -95,7 +95,7 @@ const {
   send,
 } = useChatStream(COPAW_CHAT_API, {
   requestFormat: 'copaw',
-  sessionId: typeof workno === 'string' ? `workno-${workno}` : undefined,
+  sessionId: +new Date(),
 });
 
 // 其他页面状态

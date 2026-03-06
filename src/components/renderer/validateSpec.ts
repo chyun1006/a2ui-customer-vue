@@ -21,6 +21,12 @@ export function validateSpec(spec: Spec | null | undefined): Spec | null {
     if (path[path.length - 1] === 'children' && msg.includes('expected array') && msg.includes('undefined')) return true
     return false
   }
-  if (result.error && !issues.every(isIncompleteIssue)) console.error('[validateSpec]', result.error)
+  if (result.error && !issues.every(isIncompleteIssue)) {
+    console.error('[validateSpec]', {
+      message: 'Spec validation failed',
+      root: (spec as any).root,
+      issues: result.error.issues,
+    })
+  }
   return null
 }

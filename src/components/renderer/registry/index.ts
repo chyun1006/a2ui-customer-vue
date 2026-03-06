@@ -30,6 +30,7 @@ import AlertComp from '../components/ui/base/Alert.vue'
 import ButtonComp from '../components/ui/base/Button.vue'
 import DividerComp from '../components/ui/base/Divider.vue'
 import IconComp from '../components/ui/base/Icon.vue'
+import ImageComp from '../components/ui/base/Image.vue'
 
 const InputWithBinding = defineComponent({
   name: 'JsonRenderInput',
@@ -201,7 +202,11 @@ export const { registry, handlers } = defineRegistry(catalog, {
       h(ContainerComp, { gap: props.gap ?? undefined }, { default: () => children }),
     Heading: ({ props }) =>
       h(HeadingComp, { text: props.text, level: props.level ?? undefined }),
-    Text: ({ props }) => h(TextComp, { content: props.content }),
+    Text: ({ props }) =>
+      h(TextComp, {
+        content: props.content,
+        align: props.align ?? null,
+      }),
     Table: ({ props }) =>
       h(DataTableComp, {
         columns: props.columns,
@@ -249,6 +254,14 @@ export const { registry, handlers } = defineRegistry(catalog, {
         name: props.name,
         size: props.size ?? undefined,
         color: props.color ?? undefined,
+      }),
+    Image: ({ props }) =>
+      h(ImageComp, {
+        src: props.src,
+        alt: props.alt ?? null,
+        width: props.width ?? null,
+        height: props.height ?? null,
+        radius: props.radius ?? 'md',
       }),
 
     Input: (ctx) => h(InputWithBinding, { props: ctx.props, bindings: ctx.bindings }),

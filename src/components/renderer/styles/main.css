@@ -272,7 +272,7 @@
   line-height: 1.25;
   user-select: none;
   white-space: nowrap;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: all 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .jr-button:focus-visible {

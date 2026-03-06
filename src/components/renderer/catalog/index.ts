@@ -33,7 +33,7 @@ export const catalog = defineCatalog(schema, {
       description: '水平布局',
     },
     Column: {
-      props: z.object({ gap: z.enum(['sm', 'md', 'lg']).nullable() }),
+      props: z.object({ gap: z.enum(['sm', 'md', 'lg']).nullable().optional() }),
       slots: ['default'],
       description: '垂直布局',
     },
@@ -50,8 +50,11 @@ export const catalog = defineCatalog(schema, {
       description: '标题文字',
     },
     Text: {
-      props: z.object({ content: z.string() }),
-      description: '普通文本段落',
+      props: z.object({
+        content: z.string(),
+        align: z.enum(['left', 'center', 'right']).nullable().optional(),
+      }),
+      description: '普通文本段落，可通过 align 设置对齐方式（left/center/right）。',
     },
     Table: {
       props: z.object({
@@ -208,11 +211,11 @@ export const catalog = defineCatalog(schema, {
     },
     List: {
       props: z.object({
-        ordered: z.boolean().nullable(),
-        gap: z.enum(['sm', 'md', 'lg']).nullable(),
+        ordered: z.boolean().nullable().optional(),
+        gap: z.enum(['sm', 'md', 'lg']).nullable().optional(),
       }),
       slots: ['default'],
-      description: '列表容器，可包含 ListItem 子项',
+      description: '列表容器，可包含 ListItem 子项。ordered/gap 可省略，前端会使用默认值（ordered=false, gap=\"md\"）。',
     },
     ListItem: {
       props: z.object({
@@ -244,6 +247,17 @@ export const catalog = defineCatalog(schema, {
       }),
       description:
         '图标组件，使用 lucide-vue-next 图标库。name 需填写 lucide 图标组件名（例如 \"Search\"、\"Plane\"、\"UserCircle\" 等）。',
+    },
+    Image: {
+      props: z.object({
+        src: z.string(),
+        alt: z.string().nullable(),
+        width: z.union([z.number(), z.string()]).nullable(),
+        height: z.union([z.number(), z.string()]).nullable(),
+        radius: z.enum(['none', 'sm', 'md', 'lg', 'full']).nullable(),
+      }),
+      description:
+        '图片组件，用于展示封面/插图。src 为必填，width/height 可为数字或字符串（如 \"100%\"、\"300px\"），radius 控制圆角。',
     },
   },
   actions: {

@@ -6,7 +6,7 @@
     </div>
 
     <div class="mb-4">
-      <VibeRenderer :spec="currentSpec" />
+      <SpecRender :spec="currentSpec" />
     </div>
 
     <div class="flex gap-3 mb-4">
@@ -87,7 +87,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
-import { VibeRenderer } from "../components/renderer";
+import { SpecRender } from "../components/renderer";
 
 const loginData = {
   version: "0.8",

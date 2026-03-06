@@ -28,13 +28,23 @@ export interface SseLogEntry {
   content: string
 }
 
-export function useChatStream(api = '/api/chat') {
+/** CoPaw 风格：请求体为 input + session_id + stream，SSE 为 data: { type?, content } */
+export interface UseChatStreamOptions {
+  requestFormat?: 'default' | 'copaw'
+  sessionId?: string
+}
+
+export function useChatStream(api = '/api/chat', options: UseChatStreamOptions = {}) {
+  const { requestFormat = 'default', sessionId: optionSessionId } = options
   const messages = ref<ChatMessage[]>([])
   const currentText = ref('')
   const spec = shallowRef<Spec | null>(null)
   const isStreaming = ref(false)
   const error = ref<Error | null>(null)
   const sseLog = ref<SseLogEntry[]>([])
+  /** CoPaw 多轮对话：同一会话内复用 sessionId */
+  const sessionIdRef = ref(optionSessionId ?? `session-${Date.now()}`)
+  const sessionId = () => optionSessionId ?? sessionIdRef.value
 
   let compiler = createSpecStreamCompiler<Spec>()
 
@@ -69,14 +79,27 @@ export function useChatStream(api = '/api/chat') {
     error.value = null
 
     try {
+      const filtered = messages.value.filter(
+        (m) => m.role === 'user' || (m.role === 'assistant' && m.text),
+      )
+      const body =
+        requestFormat === 'copaw'
+          ? {
+              input: filtered.map((m) => ({
+                role: m.role as 'user' | 'assistant',
+                content: [{ type: 'text' as const, text: m.text }],
+              })),
+              session_id: sessionId(),
+              stream: true,
+            }
+          : {
+              messages: filtered.map((m) => ({ role: m.role, content: m.text })),
+            }
+
       const response = await fetch(api, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messages.value
-            .filter((m) => m.role === 'user' || (m.role === 'assistant' && m.text))
-            .map((m) => ({ role: m.role, content: m.text })),
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
@@ -148,11 +171,23 @@ export function useChatStream(api = '/api/chat') {
           const data = sseLine.slice(6).trim()
           if (!data || data === '[DONE]') continue
           try {
-            const parsed = JSON.parse(data) as { content?: string; error?: string }
-            if (parsed.error) {
-              error.value = new Error(parsed.error)
+            const parsed = JSON.parse(data) as Record<string, unknown>
+            const err = parsed.error
+            if (err != null && err !== '') {
+              error.value = new Error(String(err))
               break
             }
+            // CoPaw：object=== "content" 且 type=== "text" 时取 text 字段（流式 delta）
+            if (requestFormat === 'copaw') {
+              if (parsed.object === 'content' && parsed.type === 'text' && typeof parsed.text === 'string') {
+                const token = parsed.text
+                if (token) sseLog.value.push({ type: 'token', content: token })
+                contentBuffer += token
+                processContentBuffer()
+              }
+              continue
+            }
+            // 默认格式：content 字段
             if (typeof parsed.content === 'string') {
               if (parsed.content) sseLog.value.push({ type: 'token', content: parsed.content })
               contentBuffer += parsed.content
@@ -166,8 +201,13 @@ export function useChatStream(api = '/api/chat') {
 
       if (sseBuffer.startsWith('data: ')) {
         try {
-          const parsed = JSON.parse(sseBuffer.slice(6).trim()) as { content?: string }
-          if (typeof parsed.content === 'string') contentBuffer += parsed.content
+          const parsed = JSON.parse(sseBuffer.slice(6).trim()) as Record<string, unknown>
+          if (requestFormat === 'copaw') {
+            if (parsed.object === 'content' && parsed.type === 'text' && typeof parsed.text === 'string')
+              contentBuffer += parsed.text
+          } else if (typeof parsed.content === 'string') {
+            contentBuffer += parsed.content
+          }
         } catch {
           // ignore
         }

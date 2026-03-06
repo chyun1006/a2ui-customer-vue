@@ -84,14 +84,19 @@ import { useChatStream } from "../composables/useChatStream";
 const route = useRoute();
 const workno = route.query.workno;
 
-// 聊天流式状态（复用 /api/chat + useChatStream）
+// 聊天流式状态（CoPaw 服务：请求体 input + session_id + stream，SSE 解析 type/content）
+// const COPAW_CHAT_API = 'http://10.22.10.28:8088/api/agent/process'
+const COPAW_CHAT_API = 'http://10.22.14.136:8088/api/agent/process'
 const {
   messages,
   currentText,
   spec: streamingSpec,
   isStreaming,
   send,
-} = useChatStream("/api/chat");
+} = useChatStream(COPAW_CHAT_API, {
+  requestFormat: 'copaw',
+  sessionId: typeof workno === 'string' ? `workno-${workno}` : undefined,
+});
 
 // 其他页面状态
 const messagesEnd = ref(null);

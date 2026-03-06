@@ -67,7 +67,7 @@
         </div>
 
         <!-- VibeRenderer / A2UI 组件 -->
-        <VibeRenderer
+        <SpecRender
           v-if="hasSpec"
           :spec="streamingSpec || message.spec"
           :loading="isStreaming"
@@ -83,7 +83,7 @@
       </div>
 
       <!-- 普通文本消息（含流式） -->
-      <!-- <div v-else class="flex flex-col items-start gap-1">
+      <div v-else class="flex flex-col items-start gap-1">
         <div
           class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
         >
@@ -91,7 +91,7 @@
             {{ displayText }}
           </p>
         </div>
-      </div> -->
+      </div>
       <!-- 流式回答时，在文本气泡下方显示更柔和的 Loading 效果 -->
       <div
         v-if="isStreaming && !showLoadingBubble"
@@ -107,7 +107,7 @@
 <script setup>
 import { computed } from "vue";
 import { marked } from "marked";
-import { VibeRenderer } from "../renderer";
+import { SpecRender } from "../renderer";
 import LoadingDots from "./LoadingDots.vue";
 
 const props = defineProps({

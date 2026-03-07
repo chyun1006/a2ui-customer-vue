@@ -78,6 +78,7 @@
             v-if="hasSpec"
             :spec="streamingSpec || message.spec"
             :loading="isStreaming"
+            @action="onSpecAction"
           />
         </div>
       </div>
@@ -115,7 +116,7 @@
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from "vue";
 import { marked } from "marked";
-import { SpecRender } from "../renderer";
+import { SpecRender } from "../renderer-v1";
 import LoadingDots from "./LoadingDots.vue";
 
 const props = defineProps({
@@ -263,6 +264,14 @@ onBeforeUnmount(() => {
 
 const handleActionClick = (actionName, text, formState) => {
   emit("action-click", actionName, text, formState);
+};
+
+const onSpecAction = (actionName, params, state) => {
+  const text =
+    params && typeof params === "object" && params.text != null
+      ? String(params.text)
+      : actionName;
+  emit("action-click", actionName, text, state ?? {});
 };
 </script>
 

@@ -5,7 +5,7 @@
     <!-- 消息列表 -->
     <main
       ref="messagesContainer"
-      class="flex-1 overflow-y-auto no-scrollbar p-4 pb-32"
+      class="flex-1 min-w-0 overflow-y-auto overflow-x-hidden no-scrollbar p-4 pb-32"
     >
       <ChatBubble
         v-for="msg in messages"
@@ -86,7 +86,7 @@ const workno = route.query.workno;
 
 // 聊天流式状态（CoPaw 服务：请求体 input + session_id + stream，SSE 解析 type/content）
 // const COPAW_CHAT_API = 'http://10.22.10.28:8088/api/agent/process'
-const COPAW_CHAT_API = 'http://10.22.14.136:8088/api/agent/process'
+const COPAW_CHAT_API = "http://10.22.14.136:8088/api/agent/process";
 const {
   messages,
   currentText,
@@ -94,8 +94,8 @@ const {
   isStreaming,
   send,
 } = useChatStream(COPAW_CHAT_API, {
-  requestFormat: 'copaw',
-  sessionId: +new Date(),
+  requestFormat: "copaw",
+  sessionId: 'asda',
 });
 
 // 其他页面状态

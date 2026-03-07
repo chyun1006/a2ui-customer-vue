@@ -135,7 +135,8 @@ export const catalog = defineCatalog(schema, {
         size: z.enum(['sm', 'md', 'lg']).nullable(),
         disabled: z.boolean().nullable(),
       }),
-      description: '按钮，支持不同变体和尺寸。点击需在元素上设置 on.press 为 { "action": "动作名", "params": { ... } }，例如提交按钮：on: { "press": { "action": "submit_form", "params": { "formId": "login" } } }。禁止将 on.press 设为 null 或省略，否则点击无效。',
+      description:
+        '按钮。凡用于提交/保存/登录/确认等操作的 Button，必须设置 on.press = { "action": "submit_form", "params": { "formId": "<表单ID>" } }，例如：on: { "press": { "action": "submit_form", "params": { "formId": "login-form" } } }；否则视为无效输出。禁止将 on.press 设为 null 或省略。',
     },
     Divider: {
       props: z.object({}),

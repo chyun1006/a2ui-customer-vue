@@ -66,18 +66,20 @@ const actionHandlers = computed(() =>
 </script>
 
 <template>
-  <StateProvider :store="store">
-    <VisibilityProvider>
-      <ActionProvider :handlers="actionHandlers">
-        <ErrorBoundary v-if="validSpec?.root && validSpec?.elements?.[validSpec.root]">
-          <Renderer
-            :spec="validSpec"
-            :registry="registry"
-            :loading="loading"
-          />
-        </ErrorBoundary>
-        <slot v-else name="empty" />
-      </ActionProvider>
-    </VisibilityProvider>
-  </StateProvider>
+  <div class="jr-spec-root">
+    <StateProvider :store="store">
+      <VisibilityProvider>
+        <ActionProvider :handlers="actionHandlers">
+          <ErrorBoundary v-if="validSpec?.root && validSpec?.elements?.[validSpec.root]">
+            <Renderer
+              :spec="validSpec"
+              :registry="registry"
+              :loading="loading"
+            />
+          </ErrorBoundary>
+          <slot v-else name="empty" />
+        </ActionProvider>
+      </VisibilityProvider>
+    </StateProvider>
+  </div>
 </template>

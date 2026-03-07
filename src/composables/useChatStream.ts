@@ -1,26 +1,13 @@
-import { ref, shallowRef, triggerRef } from 'vue'
-import {
-  createSpecStreamCompiler,
-  type Spec,
-} from '@json-render/core'
-import { validateSpec } from '../components/renderer/index'
+import { ref, shallowRef, triggerRef, nextTick } from 'vue'
+import type { Spec } from '@json-render/core'
+import { createSpecStreamParser } from '../components/renderer/index'
+import { getAdapter } from './stream/sseAdapters'
 
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant'
   text: string
   spec: Spec | null
-}
-
-function isJsonlPatch(line: string): boolean {
-  const trimmed = line.trim()
-  if (!trimmed || trimmed[0] !== '{') return false
-  try {
-    const obj = JSON.parse(trimmed) as Record<string, unknown>
-    return typeof obj.op === 'string' && typeof obj.path === 'string'
-  } catch {
-    return false
-  }
 }
 
 export interface SseLogEntry {
@@ -42,11 +29,8 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
   const isStreaming = ref(false)
   const error = ref<Error | null>(null)
   const sseLog = ref<SseLogEntry[]>([])
-  /** CoPaw 多轮对话：同一会话内复用 sessionId */
   const sessionIdRef = ref(optionSessionId ?? `session-${Date.now()}`)
   const sessionId = () => optionSessionId ?? sessionIdRef.value
-
-  let compiler = createSpecStreamCompiler<Spec>()
 
   function clear() {
     messages.value = []
@@ -54,7 +38,6 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
     spec.value = null
     error.value = null
     sseLog.value = []
-    compiler = createSpecStreamCompiler<Spec>()
   }
 
   async function send(userContent: string) {
@@ -74,38 +57,22 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
     currentText.value = ''
     spec.value = null
     sseLog.value = []
-    compiler = createSpecStreamCompiler<Spec>()
     isStreaming.value = true
     error.value = null
 
+    // currentText 按 token 更新，实现逐字/逐 token 流式；parser 仍按行解析 spec
+    const parser = createSpecStreamParser({
+      onLog: e => sseLog.value.push(e),
+    })
+    parser.reset()
+
+    const adapter = getAdapter(requestFormat)
+
     try {
       const filtered = messages.value.filter(
-        (m) => m.role === 'user' || (m.role === 'assistant' && m.text),
+        m => m.role === 'user' || (m.role === 'assistant' && m.text),
       )
-
-      const body =
-        requestFormat === 'copaw'
-          ? {
-              input: filtered.map((m) => ({
-                role: m.role as 'user' | 'assistant',
-                type: 'message' as const,
-                content: [
-                  {
-                    type: 'text' as const,
-                    text: m.text,
-                    status: 'created' as const,
-                  },
-                ],
-              })),
-              session_id: sessionId(),
-              user_id: 'default',
-              channel: 'console',
-              agent_id: 'default',
-              stream: true,
-            }
-          : {
-              messages: filtered.map((m) => ({ role: m.role, content: m.text })),
-            }
+      const body = adapter.buildBody(filtered, { sessionId: sessionId() })
 
       const response = await fetch(api, {
         method: 'POST',
@@ -119,56 +86,6 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
 
       const decoder = new TextDecoder()
       let sseBuffer = ''
-      let contentBuffer = ''
-      let insideSpecFence = false
-
-      function appendText(t: string) {
-        if (!t && !currentText.value) return
-        currentText.value += (currentText.value ? '\n' : '') + t
-      }
-
-      function processContentBuffer() {
-        let idx: number
-        while ((idx = contentBuffer.indexOf('\n')) !== -1) {
-          const line = contentBuffer.slice(0, idx)
-          contentBuffer = contentBuffer.slice(idx + 1)
-          const trimmed = line.trim()
-
-          if (/^```\s*spec/i.test(trimmed)) {
-            insideSpecFence = true
-            sseLog.value.push({ type: 'fence', content: '```spec' })
-            continue
-          }
-          if (insideSpecFence && /^```\s*$/.test(trimmed)) {
-            insideSpecFence = false
-            sseLog.value.push({ type: 'fence', content: '```' })
-            continue
-          }
-
-          if (insideSpecFence) {
-            if (trimmed) {
-              sseLog.value.push({ type: 'patch', content: trimmed })
-              try {
-                const { result } = compiler.push(trimmed + '\n')
-                spec.value = result
-              } catch {
-                // skip malformed patch
-              }
-            }
-          } else if (isJsonlPatch(line)) {
-            sseLog.value.push({ type: 'patch', content: trimmed })
-            try {
-              const { result } = compiler.push(trimmed + '\n')
-              spec.value = result
-            } catch {
-              // skip
-            }
-          } else {
-            if (trimmed) sseLog.value.push({ type: 'text', content: line })
-            appendText(line)
-          }
-        }
-      }
 
       while (true) {
         const { done, value } = await reader.read()
@@ -179,61 +96,63 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
 
         for (const sseLine of sseLines) {
           if (!sseLine.startsWith('data: ')) continue
-          const data = sseLine.slice(6).trim()
-          if (!data || data === '[DONE]') continue
-          try {
-            const parsed = JSON.parse(data) as Record<string, unknown>
-            const err = parsed.error
-            if (err != null && err !== '') {
-              error.value = new Error(String(err))
-              break
+          const dataJson = sseLine.slice(6).trim()
+          if (!dataJson) continue
+
+          const consumed = adapter.parseDataLine(dataJson, (ev) => {
+            if (ev.kind === 'error') {
+              error.value = new Error(ev.message)
+              return
             }
-            // CoPaw：object=== "content" 且 type=== "text" 时取 text 字段（流式 delta）
-            if (requestFormat === 'copaw') {
-              if (parsed.object === 'content' && parsed.type === 'text' && typeof parsed.text === 'string') {
-                const token = parsed.text
-                if (token) sseLog.value.push({ type: 'token', content: token })
-                contentBuffer += token
-                processContentBuffer()
-              }
-              continue
+            if (ev.kind === 'token' && ev.text) {
+              sseLog.value.push({ type: 'token', content: ev.text })
+              currentText.value += ev.text
+              parser.pushContent(ev.text)
             }
-            // 默认格式：content 字段
-            if (typeof parsed.content === 'string') {
-              if (parsed.content) sseLog.value.push({ type: 'token', content: parsed.content })
-              contentBuffer += parsed.content
-              processContentBuffer()
+            if (ev.kind === 'message' && ev.text) {
+              currentText.value += ev.text
+              currentText.value += '\n'
+              parser.pushContent(ev.text)
+              parser.pushContent('\n')
             }
-          } catch {
-            // ignore
+          })
+
+          if (consumed && error.value) break
+          if (consumed) {
+            spec.value = parser.getCurrentSpec()
+            await nextTick()
           }
         }
+        if (error.value) break
       }
 
       if (sseBuffer.startsWith('data: ')) {
-        try {
-          const parsed = JSON.parse(sseBuffer.slice(6).trim()) as Record<string, unknown>
-          if (requestFormat === 'copaw') {
-            if (parsed.object === 'content' && parsed.type === 'text' && typeof parsed.text === 'string')
-              contentBuffer += parsed.text
-          } else if (typeof parsed.content === 'string') {
-            contentBuffer += parsed.content
-          }
-        } catch {
-          // ignore
+        const dataJson = sseBuffer.slice(6).trim()
+        if (dataJson && dataJson !== '[DONE]') {
+          adapter.parseDataLine(dataJson, (ev) => {
+            if (ev.kind === 'error') {
+              error.value = new Error(ev.message)
+            }
+            else if (ev.kind === 'token' && ev.text) {
+              currentText.value += ev.text
+              parser.pushContent(ev.text)
+            }
+            else if (ev.kind === 'message' && ev.text) {
+              currentText.value += ev.text
+              currentText.value += '\n'
+              parser.pushContent(ev.text)
+              parser.pushContent('\n')
+            }
+          })
         }
       }
-      contentBuffer += '\n'
-      processContentBuffer()
+      parser.pushContent('\n')
 
-      const finalSpec = compiler.getResult()
-      const validated = (finalSpec && typeof finalSpec === 'object' && 'root' in finalSpec)
-        ? validateSpec(finalSpec)
-        : null
+      const validated = parser.finish()
       spec.value = validated
       triggerRef(spec)
 
-      const msgIdx = messages.value.findIndex((m) => m.id === aId)
+      const msgIdx = messages.value.findIndex(m => m.id === aId)
       if (msgIdx !== -1) {
         messages.value[msgIdx] = {
           ...messages.value[msgIdx]!,
@@ -241,9 +160,10 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
           spec: validated,
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
       error.value = e instanceof Error ? e : new Error(String(e))
-      const msgIdx = messages.value.findIndex((m) => m.id === aId)
+      const msgIdx = messages.value.findIndex(m => m.id === aId)
       if (msgIdx !== -1) {
         messages.value[msgIdx] = {
           ...messages.value[msgIdx]!,
@@ -251,7 +171,8 @@ export function useChatStream(api = '/api/chat', options: UseChatStreamOptions =
           spec: spec.value,
         }
       }
-    } finally {
+    }
+    finally {
       isStreaming.value = false
     }
   }

@@ -1,6 +1,49 @@
 import { createSpecStreamCompiler, type Spec } from '@json-render/core'
 
 /**
+ * 将完整 Spec 对象转为 JSONL 字符串（每行一个 add patch）。
+ * 顺序：/root → /elements/<id>（先 root 对应节点，再其余）→ state。
+ *
+ * state 的 JSONL 形式（二选一，当前采用「单行整对象」）：
+ * - 推荐：一行添加整个 state → {"op":"add","path":"/state","value":{...}}
+ * - 或逐 key：先 {"op":"add","path":"/state","value":{}}，再 {"op":"add","path":"/state/<key>","value":<v>} 每行一个
+ */
+export function specToJsonl(spec: Spec): string {
+  if (!spec || typeof spec !== 'object') return ''
+  const lines: string[] = []
+
+  if (spec.root != null) {
+    lines.push(JSON.stringify({ op: 'add', path: '/root', value: spec.root }))
+  }
+
+  if (spec.elements && typeof spec.elements === 'object') {
+    const rootId = typeof spec.root === 'string' ? spec.root : null
+    const ids = Object.keys(spec.elements)
+    if (rootId && ids.includes(rootId)) {
+      lines.push(
+        JSON.stringify({
+          op: 'add',
+          path: `/elements/${rootId}`,
+          value: spec.elements[rootId],
+        }),
+      )
+    }
+    for (const id of ids) {
+      if (id === rootId) continue
+      lines.push(
+        JSON.stringify({ op: 'add', path: `/elements/${id}`, value: spec.elements[id] }),
+      )
+    }
+  }
+
+  if (spec.state && typeof spec.state === 'object') {
+    lines.push(JSON.stringify({ op: 'add', path: '/state', value: spec.state }))
+  }
+
+  return lines.join('\n')
+}
+
+/**
  * 将 JSONL patch 字符串编译成 Spec 对象。
  * - 输入为多行字符串，每行一个 {"op","path","value"} JSON。
  * - 忽略空行。

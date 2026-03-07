@@ -23,12 +23,28 @@
   --jr-ring: #f97316;
 }
 
+/* Spec 根容器：任何使用 SpecRender 的地方都不超出父级宽度 */
+.jr-spec-root {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 聊天气泡内 Spec 渲染区：允许内部 flex/grid 收缩，避免撑破页面 */
+.jr-chat-spec .jr-card,
+.jr-chat-spec .jr-row,
+.jr-chat-spec .jr-column,
+.jr-chat-spec .jr-grid,
+.jr-chat-spec .jr-metric {
+  min-width: 0;
+}
+
 /* ─── Card ─── */
 .jr-card {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   background: var(--jr-bg);
+  border: 1px solid var(--jr-border);
   border-radius: var(--jr-radius-lg);
   padding: 1.5rem; /* 相当于 shadcn card 的 p-6 */
   box-shadow: var(--jr-shadow);
@@ -272,7 +288,7 @@
   line-height: 1.25;
   user-select: none;
   white-space: nowrap;
-  transition: all 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .jr-button:focus-visible {

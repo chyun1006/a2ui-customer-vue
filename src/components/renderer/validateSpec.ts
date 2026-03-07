@@ -11,7 +11,10 @@ export function validateSpec(spec: Spec | null | undefined): Spec | null {
   if (!spec.elements || typeof spec.elements !== 'object') return null
 
   const result = catalog.validate(spec)
-  if (result.success && result.data) return result.data as Spec
+  // 对于通过校验的情况，直接返回原始 spec，避免 catalog.validate()
+  // 在解析过程中丢弃 json-render 核心支持但 catalog 未显式声明的字段
+  // （例如顶层 state、元素上的 on.action 绑定等）。
+  if (result.success) return spec as Spec
 
   const issues = result.error?.issues ?? []
   const isIncompleteIssue = (issue: { path?: unknown[]; message?: string }) => {

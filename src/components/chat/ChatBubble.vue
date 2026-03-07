@@ -1,6 +1,6 @@
 <template>
   <div
-    class="mb-6 flex w-full animate-fade-in-up"
+    class="mb-6 flex w-full min-w-0 animate-fade-in-up"
     :class="isUser ? 'justify-end' : 'justify-start'"
   >
     <!-- 用户消息 -->
@@ -14,7 +14,7 @@
     </div>
 
     <!-- AI 消息 -->
-    <div v-else class="flex flex-col w-full items-start">
+    <div v-else class="flex flex-col w-full max-w-full min-w-0 items-start">
       <!-- 头像和名称 -->
       <div class="flex items-center mb-2">
         <div
@@ -54,24 +54,32 @@
       </div>
 
       <!-- 富 UI 消息（Spec 或 A2UI） -->
-      <div v-else-if="hasSpec || message.type === 'a2ui'">
-        <!-- Markdown 内容气泡（含流式文本） -->
+      <div v-else-if="hasSpec || message.type === 'a2ui'" class="w-full max-w-full min-w-0">
+        <!-- 文字气泡：流式时逐字揭示，结束后 Markdown -->
         <div
           v-if="displayText"
-          class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100 mb-2"
+          class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100 mb-2 min-w-0 max-w-full"
         >
           <div
+            v-if="isStreaming"
+            class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap"
+          >
+            {{ revealedText }}
+          </div>
+          <div
+            v-else
             class="prose prose-sm max-w-none text-slate-700 leading-relaxed"
             v-html="markdownHtml"
           />
         </div>
 
-        <!-- VibeRenderer / A2UI 组件 -->
-        <SpecRender
-          v-if="hasSpec"
-          :spec="streamingSpec || message.spec"
-          :loading="isStreaming"
-        />
+        <div class="jr-chat-spec w-full max-w-full min-w-0 overflow-x-auto">
+          <SpecRender
+            v-if="hasSpec"
+            :spec="streamingSpec || message.spec"
+            :loading="isStreaming"
+          />
+        </div>
       </div>
 
       <!-- 错误消息 -->
@@ -88,7 +96,7 @@
           class="bg-white px-4 py-2.5 rounded-bl-2xl rounded-tr-2xl rounded-br-2xl shadow-sm border border-slate-100"
         >
           <p class="text-sm text-slate-700 whitespace-pre-wrap">
-            {{ displayText }}
+            {{ revealedText }}
           </p>
         </div>
       </div>
@@ -105,7 +113,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch, onBeforeUnmount } from "vue";
 import { marked } from "marked";
 import { SpecRender } from "../renderer";
 import LoadingDots from "./LoadingDots.vue";
@@ -184,6 +192,75 @@ const markdownHtml = computed(() => {
   }
 });
 
+// 流式逐字揭示：仅用「已揭示长度」+ rAF 追赶，不依赖 TypeIt，无 destroy/分支切换问题
+const revealedLength = ref(0);
+const CHAR_REVEAL_INTERVAL_MS = 25;
+let rafId = 0;
+let lastRevealTime = 0;
+
+const revealedText = computed(() => {
+  const text = displayText.value;
+  if (props.isStreaming) {
+    return text.slice(0, revealedLength.value);
+  }
+  return text;
+});
+
+watch(
+  () => props.isStreaming,
+  (streaming) => {
+    if (streaming) {
+      revealedLength.value = 0;
+    } else {
+      revealedLength.value = displayText.value.length;
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      }
+    }
+  },
+);
+
+watch(
+  [displayText, () => props.isStreaming],
+  () => {
+    if (!props.isStreaming) return;
+    if (revealedLength.value >= displayText.value.length) return;
+    if (rafId !== 0) return;
+    lastRevealTime = 0;
+    function tick(now) {
+      if (!props.isStreaming) {
+        rafId = 0;
+        return;
+      }
+      const targetLen = displayText.value.length;
+      if (revealedLength.value >= targetLen) {
+        rafId = 0;
+        return;
+      }
+      if (lastRevealTime === 0) lastRevealTime = now;
+      const elapsed = now - lastRevealTime;
+      if (elapsed >= CHAR_REVEAL_INTERVAL_MS) {
+        revealedLength.value = Math.min(
+          revealedLength.value + Math.max(1, Math.floor(elapsed / CHAR_REVEAL_INTERVAL_MS)),
+          targetLen,
+        );
+        lastRevealTime = now;
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+    rafId = requestAnimationFrame(tick);
+  },
+  { flush: "post" },
+);
+
+onBeforeUnmount(() => {
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = 0;
+  }
+});
+
 const handleActionClick = (actionName, text, formState) => {
   emit("action-click", actionName, text, formState);
 };
@@ -246,14 +323,19 @@ const handleActionClick = (actionName, text, formState) => {
   color: #e2e8f0;
   padding: 1rem;
   border-radius: 0.5rem;
-  overflow-x: auto;
   margin: 0.5em 0;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 :deep(.prose pre code) {
   background-color: transparent;
   padding: 0;
   color: inherit;
+  white-space: inherit;
+  word-break: inherit;
 }
 
 :deep(.prose ul),

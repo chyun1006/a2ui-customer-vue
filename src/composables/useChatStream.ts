@@ -19,6 +19,7 @@ export interface SseLogEntry {
 export interface UseChatStreamOptions {
   requestFormat?: "default" | "copaw";
   sessionId?: string;
+  userId?: string;
 }
 
 export function useChatStream(
@@ -44,7 +45,6 @@ export function useChatStream(
   }
 
   async function send(userContent: string, label: string = "") {
-
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -74,7 +74,8 @@ export function useChatStream(
       const filtered = messages.value.filter(
         (m) => m.role === "user" || (m.role === "assistant" && m.text),
       );
-      const body = adapter.buildBody(filtered, { sessionId: sessionId() });
+
+      const body = adapter.buildBody(filtered, { sessionId: sessionId() }, userContent, options.userId ?? 'default');
 
       const response = await fetch(api, {
         method: "POST",

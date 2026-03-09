@@ -95,7 +95,8 @@ const {
   send,
 } = useChatStream(COPAW_CHAT_API, {
   requestFormat: "copaw",
-  sessionId: 'asda',
+  sessionId: "asda",
+  userId: workno,
 });
 
 // 其他页面状态
@@ -168,17 +169,20 @@ const fetchApprovalCount = async () => {
 
 // 处理快捷操作
 const handleQuickAction = (label) => {
-  send(String(label ?? ""));
+  send("", String(label ?? ""));
 };
 
 // 处理消息中的按钮
 const handleChatAction = (actionName, text, formState, label) => {
-  console.log(actionName, text, formState, label);
-  const title = text || actionName || "表单提交";
-  let content = title;
+  let content = "";
   if (formState && typeof formState === "object") {
-    content += "\n\n表单数据：" + JSON.stringify(formState, null, 2);
+    const params = {
+      actionName: actionName,
+      context: formState,
+    };
+    content = JSON.stringify(params, null, 2);
   }
+
   send(content, label);
 };
 

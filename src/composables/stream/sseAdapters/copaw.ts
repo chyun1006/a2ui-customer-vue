@@ -40,7 +40,15 @@ export const copawAdapter: SseAdapter = {
             formData: userContent,
           },
         ],
+        metadata: {
+          metadata: userContent
+            ? {
+                formData: userContent,
+              }
+            : null,
+        },
       })),
+
       session_id: options.sessionId ?? `session-${Date.now()}`,
       user_id: userId || "default",
       channel: "console",

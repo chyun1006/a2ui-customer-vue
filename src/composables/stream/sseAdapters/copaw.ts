@@ -29,7 +29,7 @@ export const copawAdapter: SseAdapter = {
     userId: string,
   ) {
     return {
-      input: messages.map((m) => ({
+      input: messages.map((m, index) => ({
         role: m.role as "user" | "assistant",
         type: "message" as const,
         content: [
@@ -37,15 +37,15 @@ export const copawAdapter: SseAdapter = {
             type: "text" as const,
             text: m.text,
             status: "created" as const,
-            formData: userContent,
           },
         ],
         metadata: {
-          metadata: userContent
-            ? {
-                formData: userContent,
-              }
-            : null,
+          metadata:
+            index == messages.length - 1
+              ? {
+                  formData: userContent,
+                }
+              : null,
         },
       })),
 

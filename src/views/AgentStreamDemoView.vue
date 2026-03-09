@@ -172,18 +172,19 @@ const handleQuickAction = (label) => {
 };
 
 // 处理消息中的按钮
-const handleChatAction = (actionName, text, formState) => {
+const handleChatAction = (actionName, text, formState, label) => {
+  console.log(actionName, text, formState, label);
   const title = text || actionName || "表单提交";
   let content = title;
   if (formState && typeof formState === "object") {
     content += "\n\n表单数据：" + JSON.stringify(formState, null, 2);
   }
-  send(content);
+  send(content, label);
 };
 
 // 处理发送消息
-const handleSendMessage = (message) => {
-  send(message);
+const handleSendMessage = async (message) => {
+  send("", message);
 };
 </script>
 

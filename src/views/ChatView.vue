@@ -93,10 +93,7 @@
 import { ref, nextTick, onMounted, watch } from "vue";
 import ChatBubble from "../components/chat/ChatBubble.vue";
 import ChatInput from "../components/chat/ChatInput.vue";
-import {
-  getApprovalCount,
-  getUserInfo,
-} from "../api/chat";
+import { getApprovalCount, getUserInfo } from "../api/chat";
 import { FUNCTION_ITEMS } from "../constants";
 import { useRoute } from "vue-router";
 import { useChatStream } from "../composables/useChatStream";
@@ -117,16 +114,16 @@ const messagesEnd = ref(null);
 const quickActions = ref(FUNCTION_ITEMS);
 
 // 将 json-render 内部的表单提交 action 与聊天发送打通
-if (typeof window !== "undefined") {
-  window.__VIBE_ACTION__ = (actionName, text, formState) => {
-    const title = text || actionName || "表单提交";
-    let content = title;
-    if (formState && typeof formState === "object") {
-      content += "\n\n表单数据：" + JSON.stringify(formState, null, 2);
-    }
-    send(content);
-  };
-}
+// if (typeof window !== "undefined") {
+//   window.__VIBE_ACTION__ = (actionName, text, formState) => {
+//     const title = text || actionName || "表单提交";
+//     let content = title;
+//     if (formState && typeof formState === "object") {
+//       content += "\n\n表单数据：" + JSON.stringify(formState, null, 2);
+//     }
+//     send(content);
+//   };
+// }
 
 // 初始化
 onMounted(async () => {
@@ -187,18 +184,19 @@ const handleQuickAction = (label) => {
 };
 
 // 处理消息中的按钮
-const handleChatAction = (actionName, text, formState) => {
+const handleChatAction = (actionName, text, formState, label) => {
+  console.log(actionName, text, formState, label);
   const title = text || actionName || "表单提交";
   let content = title;
   if (formState && typeof formState === "object") {
     content += "\n\n表单数据：" + JSON.stringify(formState, null, 2);
   }
-  send(content);
+  send(content, label);
 };
 
 // 处理发送消息
 const handleSendMessage = async (message) => {
-  send(message);
+  send("", message);
 };
 </script>
 

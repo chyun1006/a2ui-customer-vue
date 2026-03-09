@@ -116,7 +116,11 @@
 <script setup>
 import { computed, ref, watch, onBeforeUnmount } from "vue";
 import { marked } from "marked";
-import { SpecRender } from "../renderer-v1";
+// import { SpecRender } from "../renderer-v1";
+
+import "@airtravel/spec-render/style.css"
+import { SpecRender } from "@airtravel/spec-render"
+
 import LoadingDots from "./LoadingDots.vue";
 
 const props = defineProps({
@@ -266,12 +270,13 @@ const handleActionClick = (actionName, text, formState) => {
   emit("action-click", actionName, text, formState);
 };
 
-const onSpecAction = (actionName, params, state) => {
+const onSpecAction = (actionName, params, state, label) => {
   const text =
     params && typeof params === "object" && params.text != null
       ? String(params.text)
       : actionName;
-  emit("action-click", actionName, text, state ?? {});
+      console.log(actionName, params, state, label)
+  emit("action-click", actionName, text, state ?? {}, label);
 };
 </script>
 

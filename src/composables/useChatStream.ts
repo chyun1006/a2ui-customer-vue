@@ -62,9 +62,12 @@ export function useChatStream(
     isStreaming.value = true;
     error.value = null;
 
-    // currentText 按 token 更新，实现逐字/逐 token 流式；parser 仍按行解析 spec
+    // currentText 仅由 parser 的 onTextLine 驱动，只展示非 ```spec 块内的文本
     const parser = createSpecStreamParser({
       onLog: (e) => sseLog.value.push(e),
+      onTextLine: (line) => {
+        currentText.value += line + "\n";
+      },
     });
     parser.reset();
 
@@ -109,12 +112,9 @@ export function useChatStream(
             }
             if (ev.kind === "token" && ev.text) {
               sseLog.value.push({ type: "token", content: ev.text });
-              currentText.value += ev.text;
               parser.pushContent(ev.text);
             }
             if (ev.kind === "message" && ev.text) {
-              currentText.value += ev.text;
-              currentText.value += "\n";
               parser.pushContent(ev.text);
               parser.pushContent("\n");
             }
@@ -136,11 +136,8 @@ export function useChatStream(
             if (ev.kind === "error") {
               error.value = new Error(ev.message);
             } else if (ev.kind === "token" && ev.text) {
-              currentText.value += ev.text;
               parser.pushContent(ev.text);
             } else if (ev.kind === "message" && ev.text) {
-              currentText.value += ev.text;
-              currentText.value += "\n";
               parser.pushContent(ev.text);
               parser.pushContent("\n");
             }

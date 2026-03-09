@@ -35,13 +35,14 @@ export const copawAdapter: SseAdapter = {
         content: [
           {
             type: "text" as const,
-            text: userContent || m.text,
+            text: m.text,
             status: "created" as const,
           },
         ],
       })),
+      formData: userContent,
       session_id: options.sessionId ?? `session-${Date.now()}`,
-      user_id: userId || 'default',
+      user_id: userId || "default",
       channel: "console",
       agent_id: "default",
       stream: true,

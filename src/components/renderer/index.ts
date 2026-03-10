@@ -9,6 +9,7 @@ export {
   buildMilkTeaDemoSpec,
   specToJsonl,
 } from './compileJsonlSpec'
+export { createSpecStreamParser } from './specStreamParser'
 export {
   collectActionNames,
   createGenericActionHandler,

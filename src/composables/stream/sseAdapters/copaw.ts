@@ -11,13 +11,17 @@ function isEscapedSpecBlock(text: string): boolean {
 /** 规范化转义 spec 块：去首尾引号、字面量 \\n 转真实换行、反转义 \\ 与 \"。 */
 function normalizeEscapedSpecBlock(text: string): string {
   let s = text.trim();
-  if (s.startsWith('"')) s = s.slice(1);
-  if (s.endsWith('"')) s = s.slice(0, -1);
+  // 优先按 JSON 字符串整体反序列化，干掉多层 \" 和 \\ 包装
+  if (s.startsWith('"')) {
+    try {
+      s = JSON.parse(s) as string;
+    } catch {
+      // 如果失败，则退回到简单去首尾引号
+      s = s.slice(1, s.endsWith('"') ? -1 : undefined);
+    }
+  }
+  // 将字面量 \n 转为真实换行，交给下游 specStreamParser 继续处理 fence 与 JSONL
   s = s.replace(/\\n/g, "\n");
-  s = s
-    .replace(/\\\\/g, "\u0000")
-    .replace(/\\"/g, '"')
-    .replace(/\u0000/g, "\\");
   return s;
 }
 

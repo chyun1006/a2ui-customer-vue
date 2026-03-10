@@ -10,8 +10,8 @@ export {
   specToJsonl,
 } from './compileJsonlSpec'
 export {
-  createSpecStreamParser,
-  type SpecStreamParser,
-  type SpecStreamParserLogEntry,
-  type SpecStreamParserOptions,
-} from './specStreamParser'
+  collectActionNames,
+  createGenericActionHandler,
+  mergeDynamicHandlers,
+} from './collectSpecActions'
+export type { ActionHandler, OnDynamicAction } from './collectSpecActions'

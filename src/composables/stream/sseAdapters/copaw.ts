@@ -56,7 +56,7 @@ export const copawAdapter: SseAdapter = {
       session_id: options.sessionId ?? `session-${Date.now()}`,
       user_id: userId || "default",
       channel: "console",
-      agent_id: "default",
+      agent_id: options.agentId ?? "default",
       stream: true,
     };
   },

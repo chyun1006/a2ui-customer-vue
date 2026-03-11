@@ -2,6 +2,7 @@ import type { SseContentEvent } from "../types";
 
 export interface SseAdapterOptions {
   sessionId?: string;
+  agentId?: string;
 }
 
 export interface SseAdapter {

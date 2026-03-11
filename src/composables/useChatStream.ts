@@ -20,6 +20,7 @@ export interface UseChatStreamOptions {
   requestFormat?: "default" | "copaw";
   sessionId?: string;
   userId?: string;
+  agentId?: string;
 }
 
 export function useChatStream(
@@ -78,7 +79,12 @@ export function useChatStream(
         (m) => m.role === "user" || (m.role === "assistant" && m.text),
       );
 
-      const body = adapter.buildBody(filtered, { sessionId: sessionId() }, userContent, options.userId ?? 'default');
+      const body = adapter.buildBody(
+        filtered,
+        { sessionId: sessionId(), agentId: options.agentId },
+        userContent,
+        options.userId ?? "default",
+      );
 
       const response = await fetch(api, {
         method: "POST",
